@@ -10,6 +10,7 @@ import {
   SegmentedButtons,
   Snackbar,
   HelperText,
+  useTheme,
 } from 'react-native-paper';
 import { useForm, Controller } from 'react-hook-form';
 import { useTransactions } from '@/application/hooks/useTransactions';
@@ -27,9 +28,25 @@ interface MoneyFormData {
 }
 
 export const AddMoneyModal: React.FC<AddMoneyModalProps> = ({ visible, onDismiss }) => {
+  const theme = useTheme();
   const { addTransaction, loading } = useTransactions();
   const [snackbarVisible, setSnackbarVisible] = useState(false);
   const [snackbarMessage, setSnackbarMessage] = useState('');
+
+  // Definir colores basados en el tema
+  const themeColors = {
+    surface: theme.colors.surface,
+    text: theme.colors.onSurface,
+    textSecondary: theme.colors.onSurfaceVariant,
+    success: theme.dark ? '#4CAF50' : '#27AE60',
+    error: theme.dark ? '#F44336' : '#E74C3C',
+    incomeBackground: theme.dark ? 'rgba(76, 175, 80, 0.15)' : '#E8F5E8',
+    expenseBackground: theme.dark ? 'rgba(244, 67, 54, 0.15)' : '#FCE8E8',
+    incomeText: theme.dark ? '#81C784' : '#27AE60',
+    expenseText: theme.dark ? '#E57373' : '#E74C3C',
+    segmentedButtonSelected: theme.dark ? 'rgba(76, 175, 80, 0.2)' : '#E8F5E8',
+    segmentedButtonSelectedExpense: theme.dark ? 'rgba(244, 67, 54, 0.2)' : '#FCE8E8',
+  };
 
   // Debug: Verificar que el hook se está resolviendo correctamente
   console.log('useTransactions hook result:', { addTransaction, loading });
@@ -139,13 +156,17 @@ export const AddMoneyModal: React.FC<AddMoneyModalProps> = ({ visible, onDismiss
         onDismiss={handleDismiss}
         dismissable={!loading}
         contentContainerStyle={{ 
-          backgroundColor: 'white', 
+          backgroundColor: themeColors.surface, 
           margin: 20, 
           borderRadius: 16,
         }}
       >
         <Card.Content style={{ padding: 24 }}>
-          <Text variant="headlineSmall" style={{ textAlign: 'center', marginBottom: 24 }}>
+          <Text variant="headlineSmall" style={{ 
+            textAlign: 'center', 
+            marginBottom: 24,
+            color: themeColors.text
+          }}>
             Registrar Movimiento
           </Text>
 
@@ -155,7 +176,10 @@ export const AddMoneyModal: React.FC<AddMoneyModalProps> = ({ visible, onDismiss
             name="type"
             render={({ field: { onChange, value } }) => (
               <View style={{ marginBottom: 20 }}>
-                <Text variant="bodyMedium" style={{ marginBottom: 8, color: '#666' }}>
+                <Text variant="bodyMedium" style={{ 
+                  marginBottom: 8, 
+                  color: themeColors.textSecondary 
+                }}>
                   Tipo de transacción
                 </Text>
                 <SegmentedButtons
@@ -167,7 +191,7 @@ export const AddMoneyModal: React.FC<AddMoneyModalProps> = ({ visible, onDismiss
                       label: 'Gasto',
                       icon: 'minus',
                       style: { 
-                        backgroundColor: value === 'expense' ? '#FCE8E8' : undefined 
+                        backgroundColor: value === 'expense' ? themeColors.segmentedButtonSelectedExpense : undefined 
                       }
                     },
                     {
@@ -175,7 +199,7 @@ export const AddMoneyModal: React.FC<AddMoneyModalProps> = ({ visible, onDismiss
                       label: 'Ingreso',
                       icon: 'plus',
                       style: { 
-                        backgroundColor: value === 'income' ? '#E8F5E8' : undefined 
+                        backgroundColor: value === 'income' ? themeColors.segmentedButtonSelected : undefined 
                       }
                     },
                   ]}
@@ -258,13 +282,13 @@ export const AddMoneyModal: React.FC<AddMoneyModalProps> = ({ visible, onDismiss
 
           {/* Información adicional */}
           <View style={{ 
-            backgroundColor: transactionType === 'income' ? '#E8F5E8' : '#FCE8E8', 
+            backgroundColor: transactionType === 'income' ? themeColors.incomeBackground : themeColors.expenseBackground, 
             padding: 12, 
             borderRadius: 8, 
             marginBottom: 20 
           }}>
             <Text variant="bodySmall" style={{ 
-              color: transactionType === 'income' ? '#27AE60' : '#E74C3C',
+              color: transactionType === 'income' ? themeColors.incomeText : themeColors.expenseText,
               textAlign: 'center' 
             }}>
               {transactionType === 'income' 
@@ -292,7 +316,7 @@ export const AddMoneyModal: React.FC<AddMoneyModalProps> = ({ visible, onDismiss
               style={{ 
                 flex: 1, 
                 marginLeft: 8, 
-                backgroundColor: transactionType === 'income' ? '#27AE60' : '#E74C3C' 
+                backgroundColor: transactionType === 'income' ? themeColors.success : themeColors.error 
               }}
             >
               {loading ? 'Guardando...' : 'Registrar'}

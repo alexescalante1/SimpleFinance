@@ -6,7 +6,8 @@ import {
   Card, 
   ActivityIndicator,
   SegmentedButtons,
-  Chip
+  Chip,
+  useTheme
 } from 'react-native-paper';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LineChart } from 'react-native-chart-kit';
@@ -50,12 +51,27 @@ interface Transaction {
 }
 
 const DashboardScreen: React.FC = () => {
+  const theme = useTheme();
   const { user, logout } = useAuth();
   const { transactions, loading, refreshTransactions } = useTransactions();
   const [showModal, setShowModal] = useState<boolean>(false);
   const [refreshing, setRefreshing] = useState<boolean>(false);
   const [chartPeriod, setChartPeriod] = useState<ChartPeriod>('monthly');
   const scrollViewRef = useRef<ScrollView>(null);
+
+  // Definir colores basados en el tema
+  const themeColors = {
+    income: theme.colors.primary,
+    expense: theme.colors.error,
+    text: theme.colors.onSurface,
+    textSecondary: theme.colors.onSurfaceVariant,
+    border: theme.colors.outline,
+    success: theme.dark ? '#4CAF50' : '#27AE60',
+    warning: theme.dark ? '#FF9800' : '#F39C12',
+    chartLine: theme.colors.primary,
+    chartBackground: theme.colors.surface,
+    refreshColor: theme.colors.primary,
+  };
 
   // Funciones auxiliares para fechas
   const getDateKey = (date: Date, period: ChartPeriod): string => {
@@ -404,8 +420,6 @@ const DashboardScreen: React.FC = () => {
     });
   };
 
-
-
   // Loading state
   if (loading && transactions.length === 0) {
     return (
@@ -426,8 +440,8 @@ const DashboardScreen: React.FC = () => {
           <RefreshControl
             refreshing={refreshing}
             onRefresh={onRefresh}
-            colors={['#4CAF50']}
-            tintColor="#4CAF50"
+            colors={[themeColors.refreshColor]}
+            tintColor={themeColors.refreshColor}
           />
         }
       >
@@ -437,13 +451,13 @@ const DashboardScreen: React.FC = () => {
             <Text variant="headlineMedium" style={{ marginBottom: 8 }}>
               ¡Hola, {user?.fullName}!
             </Text>
-            <Text variant="bodyLarge" style={{ color: '#666' }}>
+            <Text variant="bodyLarge" style={{ color: themeColors.textSecondary }}>
               Control simple de finanzas
             </Text>
             {loading && (
               <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 8 }}>
                 <ActivityIndicator size="small" />
-                <Text variant="bodySmall" style={{ marginLeft: 8, color: '#666' }}>
+                <Text variant="bodySmall" style={{ marginLeft: 8, color: themeColors.textSecondary }}>
                   Actualizando...
                 </Text>
               </View>
@@ -484,24 +498,29 @@ const DashboardScreen: React.FC = () => {
             
             <View style={{ flexDirection: 'row', justifyContent: 'space-around', marginBottom: 16 }}>
               <View style={{ alignItems: 'center' }}>
-                <Text variant="bodySmall" style={{ color: '#27AE60' }}>Ingresos</Text>
-                <Text variant="headlineSmall" style={{ color: '#27AE60', fontWeight: 'bold' }}>
+                <Text variant="bodySmall" style={{ color: themeColors.success }}>Ingresos</Text>
+                <Text variant="headlineSmall" style={{ color: themeColors.success, fontWeight: 'bold' }}>
                   S/ {summary.income.toFixed(2)}
                 </Text>
               </View>
               
               <View style={{ alignItems: 'center' }}>
-                <Text variant="bodySmall" style={{ color: '#E74C3C' }}>Gastos</Text>
-                <Text variant="headlineSmall" style={{ color: '#E74C3C', fontWeight: 'bold' }}>
+                <Text variant="bodySmall" style={{ color: themeColors.expense }}>Gastos</Text>
+                <Text variant="headlineSmall" style={{ color: themeColors.expense, fontWeight: 'bold' }}>
                   S/ {summary.expenses.toFixed(2)}
                 </Text>
               </View>
             </View>
 
-            <View style={{ alignItems: 'center', paddingTop: 16, borderTopWidth: 1, borderTopColor: '#eee' }}>
-              <Text variant="bodySmall" style={{ color: '#333' }}>Balance Total</Text>
+            <View style={{ 
+              alignItems: 'center', 
+              paddingTop: 16, 
+              borderTopWidth: 1, 
+              borderTopColor: themeColors.border 
+            }}>
+              <Text variant="bodySmall" style={{ color: themeColors.text }}>Balance Total</Text>
               <Text variant="headlineMedium" style={{ 
-                color: summary.balance >= 0 ? '#27AE60' : '#E74C3C', 
+                color: summary.balance >= 0 ? themeColors.success : themeColors.expense, 
                 fontWeight: 'bold' 
               }}>
                 S/ {summary.balance.toFixed(2)}
@@ -523,12 +542,12 @@ const DashboardScreen: React.FC = () => {
               <View style={{
                 position: 'absolute',
                 left: 0,
-                top: 0, // Ajustar para coincidir con el margen del gráfico
-                height: 200, // Misma altura que el gráfico
+                top: 0,
+                height: 200,
                 width: 60,
-                backgroundColor: '#fff',
+                backgroundColor: themeColors.chartBackground,
                 borderRightWidth: 1,
-                borderRightColor: '#e0e0e0',
+                borderRightColor: themeColors.border,
                 zIndex: 10,
                 paddingRight: 8
               }}>
@@ -537,14 +556,13 @@ const DashboardScreen: React.FC = () => {
                   const data = chartData.datasets[0]?.data || [];
                   const maxValue = Math.max(...data, 0);
                   const minValue = Math.min(...data, 0);
-                  const range = maxValue - minValue || 1; // Evitar división por 0
+                  const range = maxValue - minValue || 1;
                   const segments = 4;
                   const yLabels = [];
                   
-                  // Holgura superior e inferior para coincidir con el gráfico
-                  const topMargin = 25; // Más holgura arriba
-                  const bottomMargin = 25; // Más holgura abajo
-                  const availableHeight = 200 - topMargin - bottomMargin; // Altura útil
+                  const topMargin = 25;
+                  const bottomMargin = 25;
+                  const availableHeight = 200 - topMargin - bottomMargin;
                   const segmentHeight = availableHeight / segments;
                   
                   for (let i = segments; i >= 0; i--) {
@@ -554,7 +572,7 @@ const DashboardScreen: React.FC = () => {
                         key={i}
                         style={{
                           position: 'absolute',
-                          top: topMargin + (segments - i) * segmentHeight - 6, // Posición ajustada con holgura
+                          top: topMargin + (segments - i) * segmentHeight - 6,
                           right: 8,
                           width: 52
                         }}
@@ -562,7 +580,7 @@ const DashboardScreen: React.FC = () => {
                         <Text 
                           variant="bodySmall" 
                           style={{ 
-                            color: '#666',
+                            color: themeColors.textSecondary,
                             fontSize: 10,
                             textAlign: 'right',
                             lineHeight: 12
@@ -595,20 +613,33 @@ const DashboardScreen: React.FC = () => {
                       width={getChartWidth() - 60}
                       height={200}
                       chartConfig={{
-                        backgroundColor: '#ffffff',
-                        backgroundGradientFrom: '#ffffff',
-                        backgroundGradientTo: '#ffffff',
+                        backgroundColor: themeColors.chartBackground,
+                        backgroundGradientFrom: themeColors.chartBackground,
+                        backgroundGradientTo: themeColors.chartBackground,
                         decimalPlaces: 0,
-                        color: (opacity: number = 1) => `rgba(76, 175, 80, ${opacity})`,
-                        labelColor: (opacity: number = 1) => `rgba(0, 0, 0, ${opacity})`,
+                        color: (opacity: number = 1) => {
+                          const color = themeColors.chartLine;
+                          // Extraer los valores RGB del color hex
+                          const r = parseInt(color.slice(1, 3), 16);
+                          const g = parseInt(color.slice(3, 5), 16);
+                          const b = parseInt(color.slice(5, 7), 16);
+                          return `rgba(${r}, ${g}, ${b}, ${opacity})`;
+                        },
+                        labelColor: (opacity: number = 1) => {
+                          const color = themeColors.text;
+                          const r = parseInt(color.slice(1, 3), 16);
+                          const g = parseInt(color.slice(3, 5), 16);
+                          const b = parseInt(color.slice(5, 7), 16);
+                          return `rgba(${r}, ${g}, ${b}, ${opacity})`;
+                        },
                         style: {
                           borderRadius: 5
                         },
                         propsForDots: {
                           r: '3',
                           strokeWidth: '1',
-                          stroke: '#4CAF50',
-                          fill: '#4CAF50'
+                          stroke: themeColors.chartLine,
+                          fill: themeColors.chartLine
                         },
                         propsForLabels: {
                           fontSize: chartPeriod === 'daily' ? 8 : 12
@@ -632,27 +663,27 @@ const DashboardScreen: React.FC = () => {
                 </View>
               ) : (
                 <View style={{ alignItems: 'center', padding: 40, marginLeft: 0 }}>
-                  <Text variant="bodyLarge" style={{ color: '#666', textAlign: 'center' }}>
+                  <Text variant="bodyLarge" style={{ color: themeColors.textSecondary, textAlign: 'center' }}>
                     Error al cargar el gráfico
                   </Text>
-                  <Text variant="bodySmall" style={{ color: '#999', textAlign: 'center', marginTop: 8 }}>
+                  <Text variant="bodySmall" style={{ color: themeColors.textSecondary, textAlign: 'center', marginTop: 8 }}>
                     Labels: {chartData.labels.length}, Data: {chartData.datasets[0]?.data.length || 0}
                   </Text>
                 </View>
               )}
             </View>
             
-            <Text variant="bodySmall" style={{ textAlign: 'center', color: '#666' }}>
+            <Text variant="bodySmall" style={{ textAlign: 'center', color: themeColors.textSecondary }}>
               {getChartDescription()}
             </Text>
             
             {/* Indicador de scroll mejorado */}
             {getChartWidth() > (screenWidth - 100) && (
               <View style={{ alignItems: 'center' }}>
-                <Text variant="bodySmall" style={{ textAlign: 'center', color: '#999', marginBottom: 4 }}>
+                <Text variant="bodySmall" style={{ textAlign: 'center', color: themeColors.textSecondary, marginBottom: 4 }}>
                   ⬅️ Desliza hacia la izquierda para ver historial
                 </Text>
-                <Text variant="bodySmall" style={{ textAlign: 'center', color: '#4CAF50', fontWeight: 'bold' }}>
+                <Text variant="bodySmall" style={{ textAlign: 'center', color: themeColors.success, fontWeight: 'bold' }}>
                   📍 Mostrando fecha actual al lado derecho
                 </Text>
               </View>
@@ -660,7 +691,7 @@ const DashboardScreen: React.FC = () => {
             
             {/* Mensaje si no hay transacciones */}
             {transactions.length === 0 && (
-              <Text variant="bodySmall" style={{ textAlign: 'center', color: '#999', marginTop: 8 }}>
+              <Text variant="bodySmall" style={{ textAlign: 'center', color: themeColors.textSecondary, marginTop: 8 }}>
                 ℹ️ Gráfico con valores en cero - Agrega transacciones para ver cambios
               </Text>
             )}
@@ -678,7 +709,7 @@ const DashboardScreen: React.FC = () => {
               mode="contained" 
               icon="plus"
               onPress={() => setShowModal(true)}
-              style={{ marginBottom: 12, backgroundColor: '#4CAF50' }}
+              style={{ marginBottom: 12, backgroundColor: themeColors.success }}
               disabled={loading}
             >
               Agregar Ingreso/Gasto

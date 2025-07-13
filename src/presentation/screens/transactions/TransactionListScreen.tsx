@@ -6,7 +6,8 @@ import {
   Chip, 
   ActivityIndicator, 
   Searchbar,
-  SegmentedButtons 
+  SegmentedButtons,
+  useTheme
 } from 'react-native-paper';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTransactions } from '@/application/hooks/useTransactions';
@@ -26,10 +27,24 @@ interface Transaction {
 }
 
 const TransactionListScreen: React.FC = () => {
+  const theme = useTheme();
   const { transactions, loading, refreshTransactions } = useTransactions();
   const [refreshing, setRefreshing] = useState<boolean>(false);
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [filterType, setFilterType] = useState<FilterType>('all');
+
+  // Definir colores basados en el tema
+  const themeColors = {
+    text: theme.colors.onSurface,
+    textSecondary: theme.colors.onSurfaceVariant,
+    refreshColor: theme.colors.primary,
+    success: theme.dark ? '#4CAF50' : '#27AE60',
+    error: theme.dark ? '#F44336' : '#E74C3C',
+    incomeBackground: theme.dark ? 'rgba(76, 175, 80, 0.15)' : '#E8F5E8',
+    expenseBackground: theme.dark ? 'rgba(244, 67, 54, 0.15)' : '#FCE8E8',
+    incomeChipText: theme.dark ? '#81C784' : '#2E7D32',
+    expenseChipText: theme.dark ? '#E57373' : '#C62828',
+  };
 
   // Función para pull-to-refresh
   const onRefresh = async (): Promise<void> => {
@@ -97,7 +112,7 @@ const TransactionListScreen: React.FC = () => {
     return (
       <SafeAreaView style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
         <ActivityIndicator size="large" />
-        <Text variant="bodyLarge" style={{ marginTop: 16 }}>
+        <Text variant="bodyLarge" style={{ marginTop: 16, color: themeColors.text }}>
           Cargando transacciones...
         </Text>
       </SafeAreaView>
@@ -112,21 +127,21 @@ const TransactionListScreen: React.FC = () => {
           <RefreshControl
             refreshing={refreshing}
             onRefresh={onRefresh}
-            colors={['#4CAF50']}
-            tintColor="#4CAF50"
+            colors={[themeColors.refreshColor]}
+            tintColor={themeColors.refreshColor}
           />
         }
       >
         {/* Header */}
         <View style={{ marginBottom: 20 }}>
-          <Text variant="headlineMedium" style={{ marginBottom: 16, textAlign: 'center' }}>
+          <Text variant="headlineMedium" style={{ marginBottom: 16, textAlign: 'center', color: themeColors.text }}>
             Mis Transacciones
           </Text>
           
           {loading && (
             <View style={{ flexDirection: 'row', justifyContent: 'center', alignItems: 'center', marginBottom: 16 }}>
               <ActivityIndicator size="small" />
-              <Text variant="bodySmall" style={{ marginLeft: 8, color: '#666' }}>
+              <Text variant="bodySmall" style={{ marginLeft: 8, color: themeColors.textSecondary }}>
                 Actualizando...
               </Text>
             </View>
@@ -134,7 +149,7 @@ const TransactionListScreen: React.FC = () => {
 
           {/* Contador de transacciones */}
           {transactions.length > 0 && (
-            <Text variant="bodyMedium" style={{ textAlign: 'center', color: '#666', marginBottom: 16 }}>
+            <Text variant="bodyMedium" style={{ textAlign: 'center', color: themeColors.textSecondary, marginBottom: 16 }}>
               {filteredTransactions.length} de {transactions.length} transacciones
             </Text>
           )}
@@ -144,10 +159,10 @@ const TransactionListScreen: React.FC = () => {
           /* Estado vacío */
           <Card mode="outlined">
             <Card.Content style={{ alignItems: 'center', padding: 40 }}>
-              <Text variant="bodyLarge" style={{ color: '#666', textAlign: 'center' }}>
+              <Text variant="bodyLarge" style={{ color: themeColors.textSecondary, textAlign: 'center' }}>
                 Aún no tienes transacciones registradas
               </Text>
-              <Text variant="bodyMedium" style={{ color: '#999', marginTop: 8, textAlign: 'center' }}>
+              <Text variant="bodyMedium" style={{ color: themeColors.textSecondary, marginTop: 8, textAlign: 'center', opacity: 0.7 }}>
                 Ve al inicio y registra tu primer movimiento
               </Text>
             </Card.Content>
@@ -178,10 +193,10 @@ const TransactionListScreen: React.FC = () => {
             {filteredTransactions.length === 0 ? (
               <Card mode="outlined">
                 <Card.Content style={{ alignItems: 'center', padding: 40 }}>
-                  <Text variant="bodyLarge" style={{ color: '#666', textAlign: 'center' }}>
+                  <Text variant="bodyLarge" style={{ color: themeColors.textSecondary, textAlign: 'center' }}>
                     No se encontraron transacciones
                   </Text>
-                  <Text variant="bodyMedium" style={{ color: '#999', marginTop: 8, textAlign: 'center' }}>
+                  <Text variant="bodyMedium" style={{ color: themeColors.textSecondary, marginTop: 8, textAlign: 'center', opacity: 0.7 }}>
                     {searchQuery ? 'Intenta con otro término de búsqueda' : 'Cambia los filtros para ver más resultados'}
                   </Text>
                 </Card.Content>
@@ -195,21 +210,25 @@ const TransactionListScreen: React.FC = () => {
                         <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 4 }}>
                           <Chip 
                             mode="outlined"
-                            textStyle={{ fontSize: 12 }}
+                            textStyle={{ 
+                              fontSize: 12,
+                              color: transaction.type === 'income' ? themeColors.incomeChipText : themeColors.expenseChipText
+                            }}
                             style={{ 
                               marginRight: 8,
-                              backgroundColor: transaction.type === 'income' ? '#E8F5E8' : '#FCE8E8'
+                              backgroundColor: transaction.type === 'income' ? themeColors.incomeBackground : themeColors.expenseBackground,
+                              borderColor: transaction.type === 'income' ? themeColors.incomeChipText : themeColors.expenseChipText
                             }}
                             icon={transaction.type === 'income' ? 'plus' : 'minus'}
                           >
                             {transaction.type === 'income' ? 'Ingreso' : 'Gasto'}
                           </Chip>
-                          <Text variant="bodySmall" style={{ color: '#666' }}>
+                          <Text variant="bodySmall" style={{ color: themeColors.textSecondary }}>
                             {formatDate(transaction.createdAt)}
                           </Text>
                         </View>
                         
-                        <Text variant="bodyLarge" style={{ marginBottom: 4 }}>
+                        <Text variant="bodyLarge" style={{ marginBottom: 4, color: themeColors.text }}>
                           {transaction.description || 'Sin descripción'}
                         </Text>
                       </View>
@@ -217,7 +236,7 @@ const TransactionListScreen: React.FC = () => {
                       <Text 
                         variant="titleLarge" 
                         style={{ 
-                          color: transaction.type === 'income' ? '#27AE60' : '#E74C3C',
+                          color: transaction.type === 'income' ? themeColors.success : themeColors.error,
                           fontWeight: 'bold'
                         }}
                       >

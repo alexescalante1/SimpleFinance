@@ -32,5 +32,8 @@ export const darkTheme = {
     background: '#121212',
     error: '#CF6679',
     errorContainer: '#601410',
+    onSurface: '#FFFFFF',
+    onSurfaceVariant: '#D1D1D1',
+    outline: '#C1C1C1',
   },
 };
