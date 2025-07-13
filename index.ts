@@ -1,5 +1,8 @@
 import { registerRootComponent } from 'expo';
 
+import 'reflect-metadata';
+import '@/infrastructure/di/firebase';
+
 import App from './App';
 
 // registerRootComponent calls AppRegistry.registerComponent('main', () => App);
