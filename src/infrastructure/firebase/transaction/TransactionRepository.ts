@@ -1,111 +1,73 @@
+import { injectable } from 'tsyringe';
 import { 
   collection, 
   addDoc, 
-  updateDoc, 
-  deleteDoc, 
-  doc, 
   query, 
   where, 
-  orderBy, 
   getDocs, 
   serverTimestamp 
 } from 'firebase/firestore';
-import { db } from '@/infrastructure/firebase/firebaseConfig';
-import { Transaction, Expense, Income } from '@/domain/models/Transaction';
+import { db } from '@/infrastructure/firebase/firebaseConfig'; // Ajusta el path según tu estructura
+import { ITransactionRepository } from '@/domain/repository/ITransactionRepository';
+import { Transaction } from '@/domain/models/Transaction';
+import { TransactionData } from '@/domain/value-objects/TransactionData';
 
-export class TransactionRepository {
-  static async createExpense(userId: string, expenseData: Omit<Expense, 'id' | 'userId' | 'createdAt' | 'updatedAt'>): Promise<string> {
-    try {
-      const expense = {
-        ...expenseData,
-        userId,
-        createdAt: serverTimestamp(),
-        updatedAt: serverTimestamp()
-      };
-      
-      const docRef = await addDoc(collection(db, 'transactions'), expense);
-      return docRef.id;
-    } catch (error: any) {
-      throw new Error(`Error al crear gasto: ${error.message}`);
-    }
+@injectable()
+export class TransactionRepository implements ITransactionRepository {
+  
+  /**
+   * Filtra campos undefined para evitar errores de Firebase
+   */
+  private filterUndefinedFields(obj: Record<string, any>): Record<string, any> {
+    const filtered: Record<string, any> = {};
+    
+    Object.keys(obj).forEach(key => {
+      if (obj[key] !== undefined) {
+        filtered[key] = obj[key];
+      }
+    });
+    
+    return filtered;
   }
 
-  static async createIncome(userId: string, incomeData: Omit<Income, 'id' | 'userId' | 'createdAt' | 'updatedAt'>): Promise<string> {
-    try {
-      const income = {
-        ...incomeData,
-        userId,
-        createdAt: serverTimestamp(),
-        updatedAt: serverTimestamp()
-      };
-      
-      const docRef = await addDoc(collection(db, 'transactions'), income);
-      return docRef.id;
-    } catch (error: any) {
-      throw new Error(`Error al crear ingreso: ${error.message}`);
-    }
+  async addTransaction(userId: string, transactionData: TransactionData): Promise<void> {
+    // Crear el objeto de transacción completo
+    const transaction = {
+      ...transactionData, // Incluir campos adicionales
+      userId,
+      type: transactionData.type,
+      amount: transactionData.amount,
+      description: transactionData.description,
+      createdAt: serverTimestamp(),
+    };
+
+    // Filtrar campos undefined antes de enviar a Firebase
+    const cleanTransaction = this.filterUndefinedFields(transaction);
+    
+    console.log('Sending transaction to Firebase:', cleanTransaction);
+    
+    await addDoc(collection(db, 'transactions'), cleanTransaction);
   }
 
-  static async getUserTransactions(userId: string, startDate?: Date, endDate?: Date): Promise<Transaction[]> {
-    try {
-      let q = query(
-        collection(db, 'transactions'),
-        where('userId', '==', userId),
-        orderBy('createdAt', 'desc')
-      );
-
-      const querySnapshot = await getDocs(q);
-      return querySnapshot.docs.map(doc => ({
-        id: doc.id,
-        ...doc.data()
-      })) as Transaction[];
-    } catch (error: any) {
-      throw new Error(`Error al obtener transacciones: ${error.message}`);
-    }
-  }
-
-  static async updateTransaction(transactionId: string, updates: Partial<Transaction>): Promise<void> {
-    try {
-      await updateDoc(doc(db, 'transactions', transactionId), {
-        ...updates,
-        updatedAt: serverTimestamp()
-      });
-    } catch (error: any) {
-      throw new Error(`Error al actualizar transacción: ${error.message}`);
-    }
-  }
-
-  static async deleteTransaction(transactionId: string): Promise<void> {
-    try {
-      await deleteDoc(doc(db, 'transactions', transactionId));
-    } catch (error: any) {
-      throw new Error(`Error al eliminar transacción: ${error.message}`);
-    }
-  }
-
-  static async createRegularization(userId: string, title: string, amount: number, type: 'income' | 'expense'): Promise<string> {
-    try {
-      const transaction = {
-        userId,
-        amount: Math.abs(amount),
-        description: title,
-        type,
-        createdAt: serverTimestamp(),
-        updatedAt: serverTimestamp(),
-        // Campos específicos según el tipo
-        ...(type === 'expense' ? {
-          category: { id: 'regularization', name: 'Regularización', type: 'necesario' as const },
-          isRecurring: false
-        } : {
-          source: { id: 'regularization', name: 'Regularización', isFixed: false },
-          isFixed: false
-        })
-      };
-      
-      const docRef = await addDoc(collection(db, 'transactions'), transaction);
-      return docRef.id;
-    } catch (error: any) {
-      throw new Error(`Error al crear regularización: ${error.message}`);
-    }
+  async getTransactionsByUser(userId: string): Promise<Transaction[]> {
+    const q = query(
+      collection(db, 'transactions'),
+      where('userId', '==', userId)
+    );
+    
+    const querySnapshot = await getDocs(q);
+    let transactions = querySnapshot.docs.map(doc => ({
+      id: doc.id,
+      ...doc.data()
+    })) as Transaction[];
+    
+    // Ordenar por fecha descendente (igual que tu código original)
+    transactions = transactions.sort((a, b) => {
+      const aTime = a.createdAt?.toDate?.() || new Date(0);
+      const bTime = b.createdAt?.toDate?.() || new Date(0);
+      return bTime.getTime() - aTime.getTime();
+    });
+    
+    return transactions;
   }
 }

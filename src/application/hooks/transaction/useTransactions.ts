@@ -1,98 +1,54 @@
+import { container } from 'tsyringe';
 import { useState, useEffect, useCallback } from 'react';
-import { 
-  collection, 
-  addDoc, 
-  query, 
-  where, 
-  orderBy, 
-  getDocs, 
-  serverTimestamp,
-  onSnapshot // Agregamos para tiempo real
-} from 'firebase/firestore';
-import { db } from '../../../infrastructure/firebase/firebaseConfig';
 import { useAuth } from '../auth/useAuth';
-
-interface SimpleTransaction {
-  id: string;
-  userId: string;
-  type: 'income' | 'expense';
-  amount: number;
-  description: string;
-  createdAt: any;
-}
+import { ITransactionRepository } from '@/domain/repository/ITransactionRepository';
+import { ITransactionStateRepository } from '@/domain/repository/ITransactionStateRepository';
+import { Transaction } from '@/domain/models/Transaction';
+import { TransactionData } from '@/domain/value-objects/TransactionData';
 
 export const useTransactions = () => {
   const { user } = useAuth();
-  const [transactions, setTransactions] = useState<SimpleTransaction[]>([]);
+  const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // OPCIÓN 1: Usar onSnapshot para actualizaciones en tiempo real
+  // Resolver dependencias del contenedor DI
+  const transactionService = container.resolve<ITransactionRepository>('ITransactionRepository');
+  const transactionStateService = container.resolve<ITransactionStateRepository>('ITransactionStateRepository');
+
+  // OPCIÓN 1: Usar onSnapshot para actualizaciones en tiempo real (adaptado de tu código)
   useEffect(() => {
-    if (!user) return;
+    if (!user) {
+      setTransactions([]);
+      return;
+    }
     
     setLoading(true);
     
-    const q = query(
-      collection(db, 'transactions'),
-      where('userId', '==', user.id)
-    );
-    
-    // Listener en tiempo real
-    const unsubscribe = onSnapshot(q, 
-      (querySnapshot) => {
-        let userTransactions = querySnapshot.docs.map(doc => ({
-          id: doc.id,
-          ...doc.data()
-        })) as SimpleTransaction[];
-        
-        // Ordenar en el cliente
-        userTransactions = userTransactions.sort((a, b) => {
-          const aTime = a.createdAt?.toDate?.() || new Date(0);
-          const bTime = b.createdAt?.toDate?.() || new Date(0);
-          return bTime.getTime() - aTime.getTime();
-        });
-        
+    // Usar el servicio de estado para escuchar cambios en tiempo real
+    const unsubscribe = transactionStateService.onTransactionsChanged(
+      user.id,
+      (userTransactions) => {
         setTransactions(userTransactions);
         setLoading(false);
         setError(null);
-      },
-      (err) => {
-        console.error('Error al escuchar transacciones:', err);
-        setError(err.message);
-        setLoading(false);
       }
     );
 
     // Cleanup function
     return () => unsubscribe();
-  }, [user]);
+  }, [user, transactionStateService]);
 
-  // OPCIÓN 2: Función para refrescar manualmente (por si necesitas)
-  const fetchTransactions = useCallback(async () => {
+  // OPCIÓN 2: Función para refrescar manualmente (adaptado de tu código)
+  const refreshTransactions = useCallback(async () => {
     if (!user) return;
     
     try {
       setLoading(true);
       setError(null);
       
-      const q = query(
-        collection(db, 'transactions'),
-        where('userId', '==', user.id)
-      );
-      
-      const querySnapshot = await getDocs(q);
-      let userTransactions = querySnapshot.docs.map(doc => ({
-        id: doc.id,
-        ...doc.data()
-      })) as SimpleTransaction[];
-      
-      userTransactions = userTransactions.sort((a, b) => {
-        const aTime = a.createdAt?.toDate?.() || new Date(0);
-        const bTime = b.createdAt?.toDate?.() || new Date(0);
-        return bTime.getTime() - aTime.getTime();
-      });
-      
+      // Usar el servicio de transacciones para obtener datos
+      const userTransactions = await transactionService.getTransactionsByUser(user.id);
       setTransactions(userTransactions);
     } catch (err: any) {
       console.error('Error al obtener transacciones:', err);
@@ -100,27 +56,20 @@ export const useTransactions = () => {
     } finally {
       setLoading(false);
     }
-  }, [user]);
+  }, [user, transactionService]);
 
-  const addTransaction = async (transactionData: any) => {
+  const addTransaction = async (transactionData: TransactionData) => {
     if (!user) return;
     
     try {
       setLoading(true);
+      setError(null);
       
-      const transaction = {
-        userId: user.id,
-        type: transactionData.type,
-        amount: transactionData.amount,
-        description: transactionData.description,
-        createdAt: serverTimestamp(),
-        ...transactionData
-      };
-      
-      await addDoc(collection(db, 'transactions'), transaction);
+      // Usar el servicio de transacciones para agregar
+      await transactionService.addTransaction(user.id, transactionData);
       
       // Con onSnapshot no necesitas fetchTransactions() porque se actualiza automáticamente
-      // await fetchTransactions(); // ← Ya no necesario con tiempo real
+      // (igual que tu código original)
       
     } catch (err: any) {
       console.error('Error al agregar transacción:', err);
@@ -136,6 +85,6 @@ export const useTransactions = () => {
     loading,
     error,
     addTransaction,
-    refreshTransactions: fetchTransactions, // Por si necesitas refrescar manualmente
+    refreshTransactions, // Por si necesitas refrescar manualmente
   };
 };

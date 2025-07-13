@@ -1,25 +1,8 @@
-import { IncomeSource } from "./Income";
-import { ExpenseCategory } from "./Expense";
-export interface BaseTransaction {
+export interface Transaction {
   id: string;
   userId: string;
+  type: 'income' | 'expense';
   amount: number;
   description: string;
-  createdAt: Date;
-  updatedAt: Date;
+  createdAt: any; // Mantener flexible para Firebase timestamp o Date
 }
-
-export interface Expense extends BaseTransaction {
-  type: "expense";
-  category: ExpenseCategory;
-  isRecurring: boolean;
-  recurringDay?: number; // Día del mes para gastos recurrentes
-}
-
-export interface Income extends BaseTransaction {
-  type: "income";
-  source: IncomeSource;
-  isFixed: boolean;
-}
-
-export type Transaction = Expense | Income;
