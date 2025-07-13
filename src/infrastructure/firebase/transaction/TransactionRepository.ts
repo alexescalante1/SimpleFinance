@@ -10,7 +10,7 @@ import {
 import { db } from '@/infrastructure/firebase/firebaseConfig'; // Ajusta el path según tu estructura
 import { ITransactionRepository } from '@/domain/repository/ITransactionRepository';
 import { Transaction } from '@/domain/models/Transaction';
-import { TransactionData } from '@/domain/value-objects/TransactionData';
+import { TransactionVo } from '@/domain/valueObjects/TransactionVo';
 
 @injectable()
 export class TransactionRepository implements ITransactionRepository {
@@ -30,7 +30,7 @@ export class TransactionRepository implements ITransactionRepository {
     return filtered;
   }
 
-  async addTransaction(userId: string, transactionData: TransactionData): Promise<void> {
+  async addTransaction(userId: string, transactionData: TransactionVo): Promise<void> {
     // Crear el objeto de transacción completo
     const transaction = {
       ...transactionData, // Incluir campos adicionales

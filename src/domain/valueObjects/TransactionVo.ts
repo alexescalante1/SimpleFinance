@@ -1,4 +1,4 @@
-export interface TransactionData {
+export interface TransactionVo {
   type: 'income' | 'expense';
   amount: number;
   description: string;

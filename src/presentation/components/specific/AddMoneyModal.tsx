@@ -14,7 +14,7 @@ import {
 } from 'react-native-paper';
 import { useForm, Controller } from 'react-hook-form';
 import { useTransactions } from '@/application/hooks/useTransactions';
-import { TransactionData } from '@/domain/value-objects/TransactionData';
+import { TransactionVo } from '@/domain/valueObjects/TransactionVo';
 
 interface AddMoneyModalProps {
   visible: boolean;
@@ -86,7 +86,7 @@ export const AddMoneyModal: React.FC<AddMoneyModalProps> = ({ visible, onDismiss
       }
 
       // Crear el objeto TransactionData según el value object del dominio
-      const transactionData: TransactionData = {
+      const transactionData: TransactionVo = {
         type: data.type,
         amount: amount,
         description: data.description || (data.type === 'income' ? 'Ingreso' : 'Gasto'),

@@ -3,7 +3,7 @@ import { useState, useEffect } from 'react';
 import { IAuthRepository } from '@/domain/repository/IAuthRepository';
 import { IAuthStateRepository } from '@/domain/repository/IAuthStateRepository';
 import { User } from '@/domain/models/User';
-import { UserRegistration } from '@/domain/value-objects/UserRegistration';
+import { UserRegistrationVo } from '@/domain/valueObjects/UserRegistrationVo';
 
 export const useAuth = () => {
   const authService = container.resolve<IAuthRepository>('IAuthRepository');
@@ -22,7 +22,7 @@ export const useAuth = () => {
     return unsubscribe;
   }, []);
   
-  const register = async (userData: UserRegistration) => {
+  const register = async (userData: UserRegistrationVo) => {
     try {
       setLoading(true);
       setError(null);

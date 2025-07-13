@@ -9,11 +9,11 @@ import { auth, db } from '../firebaseConfig';
 
 import { IAuthRepository } from '@/domain/repository/IAuthRepository';
 import { User } from '@/domain/models/User';
-import { UserRegistration } from '@/domain/value-objects/UserRegistration';
+import { UserRegistrationVo } from '@/domain/valueObjects/UserRegistrationVo';
 
 @injectable()
 export class AuthRepository implements IAuthRepository {
-  async register(userData: UserRegistration): Promise<User> {
+  async register(userData: UserRegistrationVo): Promise<User> {
     const userCredential = await createUserWithEmailAndPassword(
       auth,
       userData.email,

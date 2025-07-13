@@ -1,5 +1,5 @@
 
-export interface UserRegistration {
+export interface UserRegistrationVo {
   fullName: string;
   email: string;
   password: string;

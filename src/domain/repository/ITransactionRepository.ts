@@ -1,7 +1,7 @@
 import { Transaction } from '../models/Transaction';
-import { TransactionData } from '../value-objects/TransactionData';
+import { TransactionVo } from '../valueObjects/TransactionVo';
 
 export interface ITransactionRepository {
-  addTransaction(userId: string, transactionData: TransactionData): Promise<void>;
+  addTransaction(userId: string, transactionData: TransactionVo): Promise<void>;
   getTransactionsByUser(userId: string): Promise<Transaction[]>;
 }

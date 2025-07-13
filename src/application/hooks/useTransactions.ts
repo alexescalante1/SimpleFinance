@@ -4,7 +4,7 @@ import { useAuth } from './useAuth';
 import { ITransactionRepository } from '@/domain/repository/ITransactionRepository';
 import { ITransactionStateRepository } from '@/domain/repository/ITransactionStateRepository';
 import { Transaction } from '@/domain/models/Transaction';
-import { TransactionData } from '@/domain/value-objects/TransactionData';
+import { TransactionVo } from '@/domain/valueObjects/TransactionVo';
 
 export const useTransactions = () => {
   const { user } = useAuth();
@@ -58,7 +58,7 @@ export const useTransactions = () => {
     }
   }, [user, transactionService]);
 
-  const addTransaction = async (transactionData: TransactionData) => {
+  const addTransaction = async (transactionData: TransactionVo) => {
     if (!user) return;
     
     try {
