@@ -9,7 +9,7 @@ import {
   SegmentedButtons 
 } from 'react-native-paper';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useTransactions } from '@/application/hooks/transaction/useTransactions';
+import { useTransactions } from '@/application/hooks/useTransactions';
 
 // Tipos explícitos
 type FilterType = 'all' | 'income' | 'expense';

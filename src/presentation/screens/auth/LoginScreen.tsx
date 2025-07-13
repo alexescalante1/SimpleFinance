@@ -13,7 +13,7 @@ import {
 } from 'react-native-paper';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useForm, Controller } from 'react-hook-form';
-import { useAuth } from '@/application/hooks/auth/useAuth';
+import { useAuth } from '@/application/hooks/useAuth';
 
 interface LoginFormData {
   email: string;

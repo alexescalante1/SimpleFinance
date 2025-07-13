@@ -14,7 +14,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useForm, Controller } from 'react-hook-form';
 import DateTimePicker from '@react-native-community/datetimepicker';
-import { useAuth } from '@/application/hooks/auth/useAuth';
+import { useAuth } from '@/application/hooks/useAuth';
 import { UserRegistration } from '@/domain/models/User';
 
 interface RegisterFormData {

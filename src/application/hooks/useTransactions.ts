@@ -1,6 +1,6 @@
 import { container } from 'tsyringe';
 import { useState, useEffect, useCallback } from 'react';
-import { useAuth } from '../auth/useAuth';
+import { useAuth } from './useAuth';
 import { ITransactionRepository } from '@/domain/repository/ITransactionRepository';
 import { ITransactionStateRepository } from '@/domain/repository/ITransactionStateRepository';
 import { Transaction } from '@/domain/models/Transaction';

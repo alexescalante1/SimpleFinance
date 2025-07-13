@@ -2,7 +2,7 @@ import React from 'react';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import Icon from 'react-native-vector-icons/MaterialIcons';
-import { useAuth } from '../../application/hooks/auth/useAuth';
+import { useAuth } from '../../application/hooks/useAuth';
 
 // Pantallas
 import { LoginScreen } from '../screens/auth/LoginScreen';

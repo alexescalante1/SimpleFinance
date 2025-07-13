@@ -10,8 +10,8 @@ import {
 } from 'react-native-paper';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LineChart } from 'react-native-chart-kit';
-import { useAuth } from '../../../application/hooks/auth/useAuth';
-import { useTransactions } from '../../../application/hooks/transaction/useTransactions';
+import { useAuth } from '../../../application/hooks/useAuth';
+import { useTransactions } from '../../../application/hooks/useTransactions';
 import { AddMoneyModal } from '../../components/specific/AddMoneyModal';
 
 const screenWidth: number = Dimensions.get('window').width;

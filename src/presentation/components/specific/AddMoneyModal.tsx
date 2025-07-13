@@ -12,7 +12,7 @@ import {
   HelperText,
 } from 'react-native-paper';
 import { useForm, Controller } from 'react-hook-form';
-import { useTransactions } from '@/application/hooks/transaction/useTransactions';
+import { useTransactions } from '@/application/hooks/useTransactions';
 import { TransactionData } from '@/domain/value-objects/TransactionData';
 
 interface AddMoneyModalProps {
