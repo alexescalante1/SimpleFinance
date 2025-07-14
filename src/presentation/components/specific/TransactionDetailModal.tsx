@@ -247,7 +247,9 @@ export const TransactionDetailModal: React.FC<TransactionDetailModalProps> = ({
       await onSave(transaction.id, finalDetails);
       showSnackbar('¡Detalle guardado correctamente!');
       
-      onDismiss();
+      setTimeout(() => {
+        onDismiss();
+      }, 100);
       
     } catch (error: any) {
       console.error('Error al guardar detalle:', error);

@@ -104,6 +104,11 @@ export const AddMoneyModal: React.FC<AddMoneyModalProps> = ({ visible, onDismiss
       // Limpiar formulario y cerrar modal
       reset();
       
+      // Esperar un momento antes de cerrar para que el usuario vea el mensaje
+      setTimeout(() => {
+        onDismiss();
+      }, 100);
+      
     } catch (error: any) {
       console.error('Error al registrar transacción:', error);
       showSnackbar(error.message || 'Error al registrar la transacción');
