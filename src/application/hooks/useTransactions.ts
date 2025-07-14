@@ -1,10 +1,11 @@
 import { container } from 'tsyringe';
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useAuth } from './useAuth';
 import { ITransactionRepository } from '@/domain/repository/ITransactionRepository';
 import { ITransactionStateRepository } from '@/domain/repository/ITransactionStateRepository';
 import { Transaction } from '@/domain/models/Transaction';
 import { TransactionVo } from '@/domain/valueObjects/TransactionVo';
+import { BalanceRegularizationVo } from '@/domain/valueObjects/BalanceRegularizationVo';
 
 export const useTransactions = () => {
   const { user } = useAuth();
@@ -12,11 +13,20 @@ export const useTransactions = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Resolver dependencias del contenedor DI
   const transactionService = container.resolve<ITransactionRepository>('ITransactionRepository');
   const transactionStateService = container.resolve<ITransactionStateRepository>('ITransactionStateRepository');
 
-  // OPCIÓN 1: Usar onSnapshot para actualizaciones en tiempo real (adaptado de tu código)
+  // Calcular balance actual en tiempo real
+  const currentBalance = useMemo(() => {
+    return transactions.reduce((balance, transaction) => {
+      if (transaction.type === 'income') {
+        return balance + transaction.amount;
+      } else {
+        return balance - transaction.amount;
+      }
+    }, 0);
+  }, [transactions]);
+
   useEffect(() => {
     if (!user) {
       setTransactions([]);
@@ -25,7 +35,6 @@ export const useTransactions = () => {
     
     setLoading(true);
     
-    // Usar el servicio de estado para escuchar cambios en tiempo real
     const unsubscribe = transactionStateService.onTransactionsChanged(
       user.id,
       (userTransactions) => {
@@ -35,11 +44,9 @@ export const useTransactions = () => {
       }
     );
 
-    // Cleanup function
     return () => unsubscribe();
   }, [user, transactionStateService]);
 
-  // OPCIÓN 2: Función para refrescar manualmente (adaptado de tu código)
   const refreshTransactions = useCallback(async () => {
     if (!user) return;
     
@@ -47,7 +54,6 @@ export const useTransactions = () => {
       setLoading(true);
       setError(null);
       
-      // Usar el servicio de transacciones para obtener datos
       const userTransactions = await transactionService.getTransactionsByUser(user.id);
       setTransactions(userTransactions);
     } catch (err: any) {
@@ -65,14 +71,37 @@ export const useTransactions = () => {
       setLoading(true);
       setError(null);
       
-      // Usar el servicio de transacciones para agregar
       await transactionService.addTransaction(user.id, transactionData);
-      
-      // Con onSnapshot no necesitas fetchTransactions() porque se actualiza automáticamente
-      // (igual que tu código original)
       
     } catch (err: any) {
       console.error('Error al agregar transacción:', err);
+      setError(err.message);
+      throw err;
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // NUEVA FUNCIÓN: Regularizar balance
+  const regularizeBalance = async (targetBalance: number, description?: string) => {
+    if (!user) {
+      throw new Error('Usuario no autenticado');
+    }
+    
+    try {
+      setLoading(true);
+      setError(null);
+      
+      const regularizationData: BalanceRegularizationVo = {
+        currentBalance,
+        targetBalance,
+        description
+      };
+      
+      await transactionService.regularizeBalance(user.id, regularizationData);
+      
+    } catch (err: any) {
+      console.error('Error al regularizar balance:', err);
       setError(err.message);
       throw err;
     } finally {
@@ -84,7 +113,9 @@ export const useTransactions = () => {
     transactions,
     loading,
     error,
+    currentBalance, // NUEVO: Balance calculado en tiempo real
     addTransaction,
-    refreshTransactions, // Por si necesitas refrescar manualmente
+    regularizeBalance, // NUEVA FUNCIÓN
+    refreshTransactions,
   };
 };

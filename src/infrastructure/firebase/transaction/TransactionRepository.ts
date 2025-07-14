@@ -7,17 +7,15 @@ import {
   getDocs, 
   serverTimestamp 
 } from 'firebase/firestore';
-import { db } from '@/infrastructure/firebase/firebaseConfig'; // Ajusta el path según tu estructura
+import { db } from '@/infrastructure/firebase/firebaseConfig';
 import { ITransactionRepository } from '@/domain/repository/ITransactionRepository';
 import { Transaction } from '@/domain/models/Transaction';
 import { TransactionVo } from '@/domain/valueObjects/TransactionVo';
+import { BalanceRegularizationVo, calculateRegularizationTransaction } from '@/domain/valueObjects/BalanceRegularizationVo';
 
 @injectable()
 export class TransactionRepository implements ITransactionRepository {
   
-  /**
-   * Filtra campos undefined para evitar errores de Firebase
-   */
   private filterUndefinedFields(obj: Record<string, any>): Record<string, any> {
     const filtered: Record<string, any> = {};
     
@@ -29,24 +27,41 @@ export class TransactionRepository implements ITransactionRepository {
     
     return filtered;
   }
-
+  
   async addTransaction(userId: string, transactionData: TransactionVo): Promise<void> {
-    // Crear el objeto de transacción completo
     const transaction = {
-      ...transactionData, // Incluir campos adicionales
+      ...transactionData,
       userId,
       type: transactionData.type,
       amount: transactionData.amount,
       description: transactionData.description,
+      isRegularization: transactionData.isRegularization || false, // Incluir el flag
       createdAt: serverTimestamp(),
     };
 
-    // Filtrar campos undefined antes de enviar a Firebase
     const cleanTransaction = this.filterUndefinedFields(transaction);
     
     console.log('Sending transaction to Firebase:', cleanTransaction);
     
     await addDoc(collection(db, 'transactions'), cleanTransaction);
+  }
+
+  // NUEVO MÉTODO: Regularizar balance
+  async regularizeBalance(userId: string, regularizationData: BalanceRegularizationVo): Promise<void> {
+    const transactionData = calculateRegularizationTransaction(regularizationData);
+    
+    if (!transactionData) {
+      throw new Error('No hay diferencia en el balance, no se requiere regularización');
+    }
+
+    // Crear la transacción de regularización
+    const regularizationTransaction: TransactionVo = {
+      ...transactionData,
+      isRegularization: true
+    };
+
+    // Usar el método existente para agregar la transacción
+    await this.addTransaction(userId, regularizationTransaction);
   }
 
   async getTransactionsByUser(userId: string): Promise<Transaction[]> {
@@ -61,7 +76,6 @@ export class TransactionRepository implements ITransactionRepository {
       ...doc.data()
     })) as Transaction[];
     
-    // Ordenar por fecha descendente (igual que tu código original)
     transactions = transactions.sort((a, b) => {
       const aTime = a.createdAt?.toDate?.() || new Date(0);
       const bTime = b.createdAt?.toDate?.() || new Date(0);
@@ -69,5 +83,18 @@ export class TransactionRepository implements ITransactionRepository {
     });
     
     return transactions;
+  }
+
+  // NUEVO MÉTODO: Calcular balance actual
+  async getCurrentBalance(userId: string): Promise<number> {
+    const transactions = await this.getTransactionsByUser(userId);
+    
+    return transactions.reduce((balance, transaction) => {
+      if (transaction.type === 'income') {
+        return balance + transaction.amount;
+      } else {
+        return balance - transaction.amount;
+      }
+    }, 0);
   }
 }
