@@ -1,3 +1,4 @@
+// application/hooks/useAuth.ts
 import { container } from 'tsyringe';
 import { useState, useEffect } from 'react';
 import { IAuthRepository } from '@/domain/repository/IAuthRepository';
@@ -6,15 +7,16 @@ import { User } from '@/domain/models/User';
 import { UserRegistrationVo } from '@/domain/valueObjects/UserRegistrationVo';
 
 export const useAuth = () => {
-  const authService = container.resolve<IAuthRepository>('IAuthRepository');
-  const authStateService = container.resolve<IAuthStateRepository>('IAuthStateRepository');
+  const authRepository = container.resolve<IAuthRepository>('IAuthRepository');
+  const authStateRepository = container.resolve<IAuthStateRepository>('IAuthStateRepository');
 
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   
   useEffect(() => {
-    const unsubscribe = authStateService.onAuthStateChanged((userData) => {
+    // ✅ Usar AuthStateRepository para escuchar cambios
+    const unsubscribe = authStateRepository.onAuthStateChanged((userData) => {
       setUser(userData);
       setLoading(false);
     });
@@ -26,7 +28,7 @@ export const useAuth = () => {
     try {
       setLoading(true);
       setError(null);
-      const newUser = await authService.register(userData);
+      const newUser = await authRepository.register(userData);
       setUser(newUser);
     } catch (err: any) {
       setError(err.message);
@@ -40,7 +42,7 @@ export const useAuth = () => {
     try {
       setLoading(true);
       setError(null);
-      const userData = await authService.login(email, password);
+      const userData = await authRepository.login(email, password);
       setUser(userData);
     } catch (err: any) {
       setError(err.message);
@@ -53,12 +55,21 @@ export const useAuth = () => {
   const logout = async () => {
     try {
       setLoading(true);
-      await authService.logout();
+      await authRepository.logout();
       setUser(null);
     } catch (err: any) {
       setError(err.message);
     } finally {
       setLoading(false);
+    }
+  };
+
+  // Verificar si es usuario de Google
+  const checkIsGoogleUser = async (): Promise<boolean> => {
+    try {
+      return await authRepository.isGoogleUser();
+    } catch (error) {
+      return false;
     }
   };
 
@@ -69,6 +80,7 @@ export const useAuth = () => {
     register,
     login,
     logout,
+    checkIsGoogleUser,
     isAuthenticated: !!user
   };
 };

@@ -2,6 +2,7 @@
   "expo": {
     "name": "MyFinanceApp",
     "slug": "MyFinanceApp",
+    "scheme": "MyFinanceApp",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
@@ -21,7 +22,7 @@
         "backgroundColor": "#ffffff"
       },
       "edgeToEdgeEnabled": true,
-      "package": "com.axelone.MyFinanceApp"
+      "package": "com.orsteddev.simplefinance"
     },
     "web": {
       "favicon": "./assets/favicon.png"
@@ -30,6 +31,9 @@
       "eas": {
         "projectId": "c1c13e68-1cf0-41e3-8c80-0c3c25267953"
       }
-    }
+    },
+    "plugins": [
+    
+    ]
   }
 }

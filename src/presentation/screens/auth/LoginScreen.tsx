@@ -9,11 +9,11 @@ import {
   Snackbar,
   HelperText,
   Divider,
-  ActivityIndicator,
 } from 'react-native-paper';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useForm, Controller } from 'react-hook-form';
 import { useAuth } from '@/application/hooks/useAuth';
+// import { useGoogleAuth } from '@/application/hooks/useGoogleAuth'; // 🆕 Hook de Google
 
 interface LoginFormData {
   email: string;
@@ -21,10 +21,13 @@ interface LoginFormData {
 }
 
 export const LoginScreen = ({ navigation }: { navigation: any }) => {
-  const { login, loading } = useAuth();
+  const { login, loading: authLoading } = useAuth();
+  // const { signInWithGoogle, loading: googleLoading } = useGoogleAuth();
   const [showPassword, setShowPassword] = useState(false);
   const [snackbarVisible, setSnackbarVisible] = useState(false);
   const [snackbarMessage, setSnackbarMessage] = useState('');
+  
+  const loading = authLoading //|| googleLoading;
   
   const {
     control,
@@ -45,6 +48,25 @@ export const LoginScreen = ({ navigation }: { navigation: any }) => {
       showSnackbar('¡Bienvenido de vuelta!');
     } catch (error: any) {
       showSnackbar(error.message || 'Error al iniciar sesión');
+    }
+  };
+
+  // 🆕 Función para login con Google 
+  const handleGoogleLogin = async () => {
+    try {
+      // const user = await signInWithGoogle();
+      
+      // // Verificar si es usuario nuevo
+      // const isNewUser = user.metadata.createdAt === user.metadata.updatedAt;
+      
+      // if (isNewUser) {
+      //   showSnackbar('¡Cuenta creada con Google! Bienvenido a Finanzas Personales');
+      // } else {
+      //   showSnackbar('¡Bienvenido de vuelta!');
+      // }
+    } catch (error: any) {
+      console.error('Google login error:', error);
+      showSnackbar(error.message || 'Error al iniciar sesión con Google');
     }
   };
 
@@ -83,6 +105,36 @@ export const LoginScreen = ({ navigation }: { navigation: any }) => {
               <Text variant="headlineSmall" style={{ textAlign: 'center', marginBottom: 24, fontWeight: 'bold' }}>
                 Iniciar Sesión
               </Text>
+
+              {/* 🆕 Botón de Google - Lo ponemos primero */}
+              <Button
+                mode="outlined"
+                onPress={handleGoogleLogin}
+                loading={loading}
+                disabled={loading}
+                style={{ 
+                  marginBottom: 20, 
+                  paddingVertical: 8,
+                  borderColor: '#4285F4'
+                }}
+                labelStyle={{ fontSize: 16, fontWeight: 'bold', color: '#4285F4' }}
+                icon="google"
+              >
+                {loading ? 'Conectando...' : 'Continuar con Google'}
+              </Button>
+
+              {/* Divider */}
+              <View style={{ 
+                flexDirection: 'row', 
+                alignItems: 'center', 
+                marginVertical: 20 
+              }}>
+                <Divider style={{ flex: 1 }} />
+                <Text variant="bodyMedium" style={{ marginHorizontal: 16, color: '#666' }}>
+                  o
+                </Text>
+                <Divider style={{ flex: 1 }} />
+              </View>
 
               {/* Campo Email */}
               <Controller
@@ -183,7 +235,7 @@ export const LoginScreen = ({ navigation }: { navigation: any }) => {
               }}>
                 <Divider style={{ flex: 1 }} />
                 <Text variant="bodyMedium" style={{ marginHorizontal: 16, color: '#666' }}>
-                  o
+                  ¿No tienes cuenta?
                 </Text>
                 <Divider style={{ flex: 1 }} />
               </View>

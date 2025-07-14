@@ -1,9 +1,22 @@
 export interface User {
   id: string;
-  fullName: string;
   email: string;
-  birthDate: Date;
+  fullName: string;
   gender: 'masculino' | 'femenino';
-  createdAt: Date;
-  updatedAt: Date;
+  birthDate: string; // ISO string format
+  currency: string;
+  language: string;
+  country: {
+    code: string;
+    name: string;
+  };
+  preferences: {
+    notificationsEnabled: boolean;
+    defaultWalletId: string | null;
+  };
+  metadata: {
+    createdAt: string; // ISO string format
+    updatedAt: string; // ISO string format
+  };
+  status: 'active' | 'inactive' | 'suspended';
 }
