@@ -1,16 +1,23 @@
+// APPLICATION - useTransactions Hook Updated
 import { container } from 'tsyringe';
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useAuth } from './useAuth';
 import { ITransactionRepository } from '@/domain/repository/ITransactionRepository';
 import { ITransactionStateRepository } from '@/domain/repository/ITransactionStateRepository';
-import { Transaction } from '@/domain/models/Transaction';
+import { Transaction, TransactionDetail } from '@/domain/models/Transaction';
 import { TransactionVo } from '@/domain/valueObjects/TransactionVo';
 import { BalanceRegularizationVo } from '@/domain/valueObjects/BalanceRegularizationVo';
 
 export const useTransactions = () => {
   const { user } = useAuth();
   const [transactions, setTransactions] = useState<Transaction[]>([]);
-  const [loading, setLoading] = useState(false);
+  const [loadingStates, setLoadingStates] = useState({
+    fetching: false,
+    adding: false,
+    regularizing: false,
+    deleting: false,
+    updatingDetail: false
+  });
   const [error, setError] = useState<string | null>(null);
 
   const transactionService = container.resolve<ITransactionRepository>('ITransactionRepository');
@@ -27,19 +34,24 @@ export const useTransactions = () => {
     }, 0);
   }, [transactions]);
 
+  // Loading general
+  const loading = useMemo(() => {
+    return Object.values(loadingStates).some(Boolean);
+  }, [loadingStates]);
+
   useEffect(() => {
     if (!user) {
       setTransactions([]);
       return;
     }
     
-    setLoading(true);
+    setLoadingStates(prev => ({ ...prev, fetching: true }));
     
     const unsubscribe = transactionStateService.onTransactionsChanged(
       user.id,
       (userTransactions) => {
         setTransactions(userTransactions);
-        setLoading(false);
+        setLoadingStates(prev => ({ ...prev, fetching: false }));
         setError(null);
       }
     );
@@ -51,7 +63,7 @@ export const useTransactions = () => {
     if (!user) return;
     
     try {
-      setLoading(true);
+      setLoadingStates(prev => ({ ...prev, fetching: true }));
       setError(null);
       
       const userTransactions = await transactionService.getTransactionsByUser(user.id);
@@ -60,7 +72,7 @@ export const useTransactions = () => {
       console.error('Error al obtener transacciones:', err);
       setError(err.message);
     } finally {
-      setLoading(false);
+      setLoadingStates(prev => ({ ...prev, fetching: false }));
     }
   }, [user, transactionService]);
 
@@ -68,7 +80,7 @@ export const useTransactions = () => {
     if (!user) return;
     
     try {
-      setLoading(true);
+      setLoadingStates(prev => ({ ...prev, adding: true }));
       setError(null);
       
       await transactionService.addTransaction(user.id, transactionData);
@@ -78,18 +90,17 @@ export const useTransactions = () => {
       setError(err.message);
       throw err;
     } finally {
-      setLoading(false);
+      setLoadingStates(prev => ({ ...prev, adding: false }));
     }
   };
 
-  // NUEVA FUNCIÓN: Regularizar balance
   const regularizeBalance = async (targetBalance: number, description?: string) => {
     if (!user) {
       throw new Error('Usuario no autenticado');
     }
     
     try {
-      setLoading(true);
+      setLoadingStates(prev => ({ ...prev, regularizing: true }));
       setError(null);
       
       const regularizationData: BalanceRegularizationVo = {
@@ -105,17 +116,53 @@ export const useTransactions = () => {
       setError(err.message);
       throw err;
     } finally {
-      setLoading(false);
+      setLoadingStates(prev => ({ ...prev, regularizing: false }));
+    }
+  };
+
+  // NUEVAS FUNCIONES
+  const deleteTransaction = async (transactionId: string) => {
+    try {
+      setLoadingStates(prev => ({ ...prev, deleting: true }));
+      setError(null);
+      
+      await transactionService.deleteTransaction(transactionId);
+      
+    } catch (err: any) {
+      console.error('Error al eliminar transacción:', err);
+      setError(err.message);
+      throw err;
+    } finally {
+      setLoadingStates(prev => ({ ...prev, deleting: false }));
+    }
+  };
+
+  const updateTransactionDetail = async (transactionId: string, detail: TransactionDetail[]) => {
+    try {
+      setLoadingStates(prev => ({ ...prev, updatingDetail: true }));
+      setError(null);
+      
+      await transactionService.updateTransactionDetail(transactionId, detail);
+      
+    } catch (err: any) {
+      console.error('Error al actualizar detalle:', err);
+      setError(err.message);
+      throw err;
+    } finally {
+      setLoadingStates(prev => ({ ...prev, updatingDetail: false }));
     }
   };
 
   return {
     transactions,
     loading,
+    loadingStates,
     error,
-    currentBalance, // NUEVO: Balance calculado en tiempo real
+    currentBalance,
     addTransaction,
-    regularizeBalance, // NUEVA FUNCIÓN
+    regularizeBalance,
     refreshTransactions,
+    deleteTransaction, // NUEVA
+    updateTransactionDetail, // NUEVA
   };
 };

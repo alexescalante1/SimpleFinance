@@ -7,31 +7,45 @@ import {
   ActivityIndicator, 
   Searchbar,
   SegmentedButtons,
-  useTheme
+  useTheme,
+  IconButton,
+  Menu,
+  Divider,
+  Snackbar
 } from 'react-native-paper';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTransactions } from '@/application/hooks/useTransactions';
+import { DeleteConfirmationModal } from '@/presentation/components/specific/DeleteConfirmationModal';
+import { TransactionDetailModal } from '@/presentation/components/specific/TransactionDetailModal';
+import { Transaction, TransactionDetail } from '@/domain/models/Transaction';
 
 // Tipos explícitos
 type FilterType = 'all' | 'income' | 'expense';
 
-interface Transaction {
-  id: string;
-  userId: string;
-  type: 'income' | 'expense';
-  amount: number;
-  description: string;
-  createdAt: {
-    toDate: () => Date;
-  };
-}
-
 const TransactionListScreen: React.FC = () => {
   const theme = useTheme();
-  const { transactions, loading, refreshTransactions } = useTransactions();
+  const { 
+    transactions, 
+    loading, 
+    loadingStates,
+    refreshTransactions, 
+    deleteTransaction,
+    updateTransactionDetail 
+  } = useTransactions();
+  
   const [refreshing, setRefreshing] = useState<boolean>(false);
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [filterType, setFilterType] = useState<FilterType>('all');
+  
+  // Estados para modales y menús
+  const [selectedTransaction, setSelectedTransaction] = useState<Transaction | null>(null);
+  const [showDeleteModal, setShowDeleteModal] = useState<boolean>(false);
+  const [showDetailModal, setShowDetailModal] = useState<boolean>(false);
+  const [menuVisible, setMenuVisible] = useState<{ [key: string]: boolean }>({});
+  
+  // Snackbar
+  const [snackbarVisible, setSnackbarVisible] = useState<boolean>(false);
+  const [snackbarMessage, setSnackbarMessage] = useState<string>('');
 
   // Definir colores basados en el tema
   const themeColors = {
@@ -53,6 +67,7 @@ const TransactionListScreen: React.FC = () => {
       await refreshTransactions();
     } catch (error: unknown) {
       console.error('Error al refrescar:', error);
+      showSnackbar('Error al refrescar las transacciones');
     } finally {
       setRefreshing(false);
     }
@@ -71,7 +86,10 @@ const TransactionListScreen: React.FC = () => {
     if (searchQuery.trim()) {
       filtered = filtered.filter((transaction: Transaction) =>
         transaction.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        transaction.amount.toString().includes(searchQuery)
+        transaction.amount.toString().includes(searchQuery) ||
+        transaction.detail?.some(detail => 
+          detail.description.toLowerCase().includes(searchQuery.toLowerCase())
+        )
       );
     }
 
@@ -97,6 +115,65 @@ const TransactionListScreen: React.FC = () => {
     }
   };
 
+  // Funciones para manejar menús
+  const toggleMenu = (transactionId: string) => {
+    setMenuVisible(prev => ({
+      ...prev,
+      [transactionId]: !prev[transactionId]
+    }));
+  };
+
+  const closeMenu = (transactionId: string) => {
+    setMenuVisible(prev => ({
+      ...prev,
+      [transactionId]: false
+    }));
+  };
+
+  // Funciones para manejar acciones
+  const handleDeletePress = (transaction: Transaction) => {
+    setSelectedTransaction(transaction);
+    closeMenu(transaction.id);
+    setShowDeleteModal(true);
+  };
+
+  const handleDetailPress = (transaction: Transaction) => {
+    setSelectedTransaction(transaction);
+    closeMenu(transaction.id);
+    setShowDetailModal(true);
+  };
+
+  const handleConfirmDelete = async () => {
+    if (!selectedTransaction) return;
+
+    try {
+      await deleteTransaction(selectedTransaction.id);
+      setShowDeleteModal(false);
+      setSelectedTransaction(null);
+      showSnackbar('Transacción eliminada correctamente');
+    } catch (error: any) {
+      console.error('Error al eliminar:', error);
+      showSnackbar(error.message || 'Error al eliminar la transacción');
+    }
+  };
+
+  const handleSaveDetail = async (transactionId: string, detail: TransactionDetail[]) => {
+    try {
+      await updateTransactionDetail(transactionId, detail);
+      setShowDetailModal(false);
+      setSelectedTransaction(null);
+      showSnackbar('Detalle actualizado correctamente');
+    } catch (error: any) {
+      console.error('Error al guardar detalle:', error);
+      throw error; // Relanzar para que el modal maneje el error
+    }
+  };
+
+  const showSnackbar = (message: string) => {
+    setSnackbarMessage(message);
+    setSnackbarVisible(true);
+  };
+
   // Handler para cambio de filtro
   const handleFilterChange = (value: string): void => {
     setFilterType(value as FilterType);
@@ -108,7 +185,7 @@ const TransactionListScreen: React.FC = () => {
   };
 
   // Loading inicial
-  if (loading && transactions.length === 0) {
+  if (loadingStates.fetching && transactions.length === 0) {
     return (
       <SafeAreaView style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
         <ActivityIndicator size="large" />
@@ -138,11 +215,13 @@ const TransactionListScreen: React.FC = () => {
             Mis Transacciones
           </Text>
           
-          {loading && (
+          {(loadingStates.fetching || loadingStates.deleting || loadingStates.updatingDetail) && (
             <View style={{ flexDirection: 'row', justifyContent: 'center', alignItems: 'center', marginBottom: 16 }}>
               <ActivityIndicator size="small" />
               <Text variant="bodySmall" style={{ marginLeft: 8, color: themeColors.textSecondary }}>
-                Actualizando...
+                {loadingStates.deleting ? 'Eliminando...' : 
+                 loadingStates.updatingDetail ? 'Actualizando detalle...' : 
+                 'Actualizando...'}
               </Text>
             </View>
           )}
@@ -171,7 +250,7 @@ const TransactionListScreen: React.FC = () => {
           <>
             {/* Barra de búsqueda */}
             <Searchbar
-              placeholder="Buscar transacciones..."
+              placeholder="Buscar por descripción, monto o detalle..."
               onChangeText={handleSearchChange}
               value={searchQuery}
               style={{ marginBottom: 16 }}
@@ -205,7 +284,7 @@ const TransactionListScreen: React.FC = () => {
               filteredTransactions.map((transaction: Transaction) => (
                 <Card key={transaction.id} mode="outlined" style={{ marginBottom: 12 }}>
                   <Card.Content>
-                    <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start' }}>
                       <View style={{ flex: 1 }}>
                         <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 4 }}>
                           <Chip 
@@ -223,6 +302,17 @@ const TransactionListScreen: React.FC = () => {
                           >
                             {transaction.type === 'income' ? 'Ingreso' : 'Gasto'}
                           </Chip>
+                          
+                          {transaction.isRegularization && (
+                            <Chip 
+                              mode="outlined"
+                              textStyle={{ fontSize: 10 }}
+                              style={{ marginRight: 8 }}
+                            >
+                              🔄
+                            </Chip>
+                          )}
+                          
                           <Text variant="bodySmall" style={{ color: themeColors.textSecondary }}>
                             {formatDate(transaction.createdAt)}
                           </Text>
@@ -231,17 +321,60 @@ const TransactionListScreen: React.FC = () => {
                         <Text variant="bodyLarge" style={{ marginBottom: 4, color: themeColors.text }}>
                           {transaction.description || 'Sin descripción'}
                         </Text>
+
+                        {/* Mostrar cantidad de detalles si existen */}
+                        {transaction.detail && transaction.detail.length > 0 && (
+                          <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 4 }}>
+                            <Chip 
+                              mode="outlined" 
+                              compact 
+                              textStyle={{ fontSize: 10 }}
+                              style={{ marginRight: 8 }}
+                            >
+                              📋 {transaction.detail.length} detalle{transaction.detail.length !== 1 ? 's' : ''}
+                            </Chip>
+                          </View>
+                        )}
                       </View>
                       
-                      <Text 
-                        variant="titleLarge" 
-                        style={{ 
-                          color: transaction.type === 'income' ? themeColors.success : themeColors.error,
-                          fontWeight: 'bold'
-                        }}
-                      >
-                        {transaction.type === 'income' ? '+' : '-'}S/ {transaction.amount?.toFixed(2) || '0.00'}
-                      </Text>
+                      <View style={{ alignItems: 'flex-end', marginLeft: 8 }}>
+                        <Text 
+                          variant="titleLarge" 
+                          style={{ 
+                            color: transaction.type === 'income' ? themeColors.success : themeColors.error,
+                            fontWeight: 'bold',
+                            marginBottom: 4
+                          }}
+                        >
+                          {transaction.type === 'income' ? '+' : '-'}S/ {transaction.amount?.toFixed(2) || '0.00'}
+                        </Text>
+
+                        {/* Menú de opciones */}
+                        <Menu
+                          visible={menuVisible[transaction.id] || false}
+                          onDismiss={() => closeMenu(transaction.id)}
+                          anchor={
+                            <IconButton
+                              icon="dots-vertical"
+                              size={20}
+                              onPress={() => toggleMenu(transaction.id)}
+                            />
+                          }
+                        >
+                          <Menu.Item
+                            onPress={() => handleDetailPress(transaction)}
+                            title="Ver/Editar Detalle"
+                            leadingIcon="text-box-edit"
+                          />
+                          <Divider />
+                          <Menu.Item
+                            onPress={() => handleDeletePress(transaction)}
+                            title="Eliminar"
+                            leadingIcon="delete"
+                            titleStyle={{ color: themeColors.error }}
+                          />
+                        </Menu>
+                      </View>
                     </View>
                   </Card.Content>
                 </Card>
@@ -250,6 +383,43 @@ const TransactionListScreen: React.FC = () => {
           </>
         )}
       </ScrollView>
+
+      {/* Modal de confirmación de eliminación */}
+      <DeleteConfirmationModal
+        visible={showDeleteModal}
+        onDismiss={() => {
+          setShowDeleteModal(false);
+          setSelectedTransaction(null);
+        }}
+        onConfirm={handleConfirmDelete}
+        transaction={selectedTransaction}
+        loading={loadingStates.deleting}
+      />
+
+      {/* Modal de detalle de transacción */}
+      <TransactionDetailModal
+        visible={showDetailModal}
+        onDismiss={() => {
+          setShowDetailModal(false);
+          setSelectedTransaction(null);
+        }}
+        onSave={handleSaveDetail}
+        transaction={selectedTransaction}
+        loading={loadingStates.updatingDetail}
+      />
+
+      {/* Snackbar para mensajes */}
+      <Snackbar
+        visible={snackbarVisible}
+        onDismiss={() => setSnackbarVisible(false)}
+        duration={4000}
+        action={{
+          label: 'OK',
+          onPress: () => setSnackbarVisible(false),
+        }}
+      >
+        {snackbarMessage}
+      </Snackbar>
     </SafeAreaView>
   );
 };

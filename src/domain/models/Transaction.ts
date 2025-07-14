@@ -4,6 +4,13 @@ export interface Transaction {
   type: 'income' | 'expense';
   amount: number;
   description: string;
+  detail: TransactionDetail[];
   createdAt: any; // Mantener flexible para Firebase timestamp o Date
-  isRegularization?: boolean; // Nuevo flag para identificar regularizaciones
+  isRegularization?: boolean;
+}
+
+export interface TransactionDetail {
+  id?: string; // Para manejar en el frontend
+  amount: number;
+  description: string;
 }

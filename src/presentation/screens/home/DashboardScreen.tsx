@@ -84,6 +84,33 @@ const DashboardScreen: React.FC = () => {
     refreshColor: theme.colors.primary,
   };
 
+  // Estilos para los cards sin borde y con sombra ligera
+  const getCardStyle = () => ({
+    marginBottom: 10,
+    elevation: theme.dark ? 2 : 1, // Sombra más sutil en modo claro
+    shadowColor: theme.dark ? "#000" : "#000",
+    shadowOffset: {
+      width: 0,
+      height: theme.dark ? 2 : 1,
+    },
+    shadowOpacity: theme.dark ? 0.25 : 0.1, // Sombra muy ligera en modo claro
+    shadowRadius: theme.dark ? 3.84 : 2,
+    borderWidth: 0, // Sin borde
+  });
+
+  const getOutlinedCardStyle = () => ({
+    marginBottom: 10,
+    elevation: theme.dark ? 1 : 0.5, // Sombra más sutil para cards outlined
+    shadowColor: theme.dark ? "#000" : "#000",
+    shadowOffset: {
+      width: 0,
+      height: theme.dark ? 1 : 0.5,
+    },
+    shadowOpacity: theme.dark ? 0.2 : 0.08, // Sombra muy ligera en modo claro
+    shadowRadius: theme.dark ? 2 : 1.5,
+    borderWidth: 0, // Sin borde
+  });
+
   // Funciones auxiliares para fechas
   const getDateKey = (date: Date, period: ChartPeriod): string => {
     const year: number = date.getFullYear();
@@ -541,11 +568,9 @@ const DashboardScreen: React.FC = () => {
         }
       >
         {/* Header */}
-        <Card mode="contained" style={{ marginBottom: 20 }}>
+        <Card mode="contained" style={getCardStyle()}>
           <Card.Content>
-            <Text variant="headlineMedium" style={{ marginBottom: 8 }}>
-              ¡Hola, {user?.fullName}!
-            </Text>
+            <Text variant="headlineMedium">¡Hola, {user?.fullName}!</Text>
             <Text
               variant="bodyLarge"
               style={{ color: themeColors.textSecondary }}
@@ -557,13 +582,13 @@ const DashboardScreen: React.FC = () => {
                 style={{
                   flexDirection: "row",
                   alignItems: "center",
-                  marginTop: 8,
+                  marginTop: 5,
                 }}
               >
                 <ActivityIndicator size="small" />
                 <Text
                   variant="bodySmall"
-                  style={{ marginLeft: 8, color: themeColors.textSecondary }}
+                  style={{ marginLeft: 5, color: themeColors.textSecondary }}
                 >
                   Actualizando...
                 </Text>
@@ -572,8 +597,48 @@ const DashboardScreen: React.FC = () => {
           </Card.Content>
         </Card>
 
+        {/* Botones de acción */}
+        <Card mode="outlined" style={getOutlinedCardStyle()}>
+          <Card.Content>
+            <Text
+              variant="titleLarge"
+              style={{ marginBottom: 16, textAlign: "center" }}
+            >
+              Registrar Movimiento
+            </Text>
+            <Button
+              mode="contained"
+              icon="plus"
+              onPress={() => setShowModal(true)}
+              style={{ marginBottom: 12, backgroundColor: themeColors.success }}
+              disabled={loading}
+            >
+              Agregar Ingreso/Gasto
+            </Button>
+            <Button
+              mode="contained"
+              icon="scale-balance"
+              onPress={() => setShowRegularizeModal(true)}
+              style={{
+                marginBottom: 12,
+                backgroundColor: themeColors.warning,
+              }}
+              disabled={loading}
+            >
+              Regularizar Balance
+            </Button>
+            <RegularizeBalanceModal
+              visible={showRegularizeModal}
+              onDismiss={() => setShowRegularizeModal(false)}
+              currentBalance={currentBalance}
+              onRegularize={regularizeBalance}
+              loading={loading}
+            />
+          </Card.Content>
+        </Card>
+
         {/* Selector de período */}
-        <Card mode="outlined" style={{ marginBottom: 20 }}>
+        <Card mode="outlined" style={getOutlinedCardStyle()}>
           <Card.Content>
             <Text
               variant="titleMedium"
@@ -597,7 +662,7 @@ const DashboardScreen: React.FC = () => {
         </Card>
 
         {/* Resumen del período */}
-        <Card mode="outlined" style={{ marginBottom: 20 }}>
+        <Card mode="outlined" style={getOutlinedCardStyle()}>
           <Card.Content>
             <View
               style={{
@@ -679,7 +744,7 @@ const DashboardScreen: React.FC = () => {
         </Card>
 
         {/* Gráfico de líneas con eje Y fijo */}
-        <Card mode="outlined" style={{ marginBottom: 20 }}>
+        <Card mode="outlined" style={getOutlinedCardStyle()}>
           <Card.Content>
             <Text
               variant="titleLarge"
@@ -893,50 +958,6 @@ const DashboardScreen: React.FC = () => {
                 cambios
               </Text>
             )}
-          </Card.Content>
-        </Card>
-
-        {/* Botones de acción */}
-        <Card mode="outlined" style={{ marginBottom: 100 }}>
-          <Card.Content>
-            <Text
-              variant="titleLarge"
-              style={{ marginBottom: 16, textAlign: "center" }}
-            >
-              Registrar Movimiento
-            </Text>
-            <Button
-              mode="contained"
-              icon="plus"
-              onPress={() => setShowModal(true)}
-              style={{ marginBottom: 12, backgroundColor: themeColors.success }}
-              disabled={loading}
-            >
-              Agregar Ingreso/Gasto
-            </Button>
-            <Button
-              mode="contained"
-              icon="scale-balance"
-              onPress={() => setShowRegularizeModal(true)}
-              style={{
-                marginBottom: 12,
-                backgroundColor: themeColors.warning,
-              }}
-              disabled={loading}
-            >
-              Regularizar Balance
-            </Button>
-            // Al final del componente, antes del closing tag, agregar el modal:
-            <RegularizeBalanceModal
-              visible={showRegularizeModal}
-              onDismiss={() => setShowRegularizeModal(false)}
-              currentBalance={currentBalance}
-              onRegularize={regularizeBalance}
-              loading={loading}
-            />
-            <Button mode="outlined" icon="logout" onPress={logout}>
-              Cerrar Sesión
-            </Button>
           </Card.Content>
         </Card>
       </ScrollView>

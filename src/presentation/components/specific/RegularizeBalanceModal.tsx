@@ -101,10 +101,7 @@ export const RegularizeBalanceModal: React.FC<RegularizeBalanceModalProps> = ({
       
       showSnackbar('¡Balance regularizado correctamente!');
       
-      setTimeout(() => {
-        reset();
-        onDismiss();
-      }, 1500);
+      reset();
       
     } catch (error: any) {
       console.error('Error al regularizar balance:', error);

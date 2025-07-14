@@ -9,7 +9,7 @@ import { LoginScreen } from '../screens/auth/LoginScreen';
 import { RegisterScreen } from '../screens/auth/RegisterScreen';
 import { DashboardScreen } from '../screens/home/DashboardScreen';
 import { TransactionListScreen } from '../screens/transactions/TransactionListScreen';
-import { SettingsScreen } from '../screens/settings/SettingsScreen';
+import { ReportsScreen } from '../screens/transactions/ReportsScreen';
 
 // Tipos de rutas (Stack)
 export type RootStackParamList = {
@@ -22,7 +22,7 @@ export type RootStackParamList = {
 export type TabParamList = {
   Dashboard: undefined;
   Transactions: undefined;
-  Settings: undefined;
+  Reports: undefined;
 };
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
@@ -36,7 +36,7 @@ const MainTabs = () => (
         const icons: Record<keyof TabParamList, string> = {
           Dashboard: 'dashboard',
           Transactions: 'swap-horiz',
-          Settings: 'settings',
+          Reports: 'report',
         };
 
         return <Icon name={icons[route.name as keyof TabParamList]} size={size} color={color} />;
@@ -46,7 +46,7 @@ const MainTabs = () => (
   >
     <Tab.Screen name="Dashboard" component={DashboardScreen} />
     <Tab.Screen name="Transactions" component={TransactionListScreen} />
-    <Tab.Screen name="Settings" component={SettingsScreen} />
+    <Tab.Screen name="Reports" component={ReportsScreen} />
   </Tab.Navigator>
 );
 

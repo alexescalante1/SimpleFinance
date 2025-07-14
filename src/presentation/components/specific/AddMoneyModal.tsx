@@ -104,11 +104,6 @@ export const AddMoneyModal: React.FC<AddMoneyModalProps> = ({ visible, onDismiss
       // Limpiar formulario y cerrar modal
       reset();
       
-      // Esperar un momento antes de cerrar para que el usuario vea el mensaje
-      setTimeout(() => {
-        onDismiss();
-      }, 1500);
-      
     } catch (error: any) {
       console.error('Error al registrar transacción:', error);
       showSnackbar(error.message || 'Error al registrar la transacción');
@@ -164,7 +159,7 @@ export const AddMoneyModal: React.FC<AddMoneyModalProps> = ({ visible, onDismiss
         <Card.Content style={{ padding: 24 }}>
           <Text variant="headlineSmall" style={{ 
             textAlign: 'center', 
-            marginBottom: 24,
+            marginBottom: 16,
             color: themeColors.text
           }}>
             Registrar Movimiento
@@ -175,7 +170,7 @@ export const AddMoneyModal: React.FC<AddMoneyModalProps> = ({ visible, onDismiss
             control={control}
             name="type"
             render={({ field: { onChange, value } }) => (
-              <View style={{ marginBottom: 20 }}>
+              <View style={{ marginBottom: 5 }}>
                 <Text variant="bodyMedium" style={{ 
                   marginBottom: 8, 
                   color: themeColors.textSecondary 
@@ -217,7 +212,7 @@ export const AddMoneyModal: React.FC<AddMoneyModalProps> = ({ visible, onDismiss
               validate: validateAmount
             }}
             render={({ field: { onChange, onBlur, value } }) => (
-              <View style={{ marginBottom: 16 }}>
+              <View style={{ marginBottom: 5 }}>
                 <TextInput
                   label={`Monto del ${transactionType === 'income' ? 'ingreso' : 'gasto'} (S/)`}
                   value={value}
@@ -257,7 +252,7 @@ export const AddMoneyModal: React.FC<AddMoneyModalProps> = ({ visible, onDismiss
               }
             }}
             render={({ field: { onChange, onBlur, value } }) => (
-              <View style={{ marginBottom: 24 }}>
+              <View style={{ marginBottom: 5 }}>
                 <TextInput
                   label="Descripción (opcional)"
                   value={value}
@@ -285,7 +280,7 @@ export const AddMoneyModal: React.FC<AddMoneyModalProps> = ({ visible, onDismiss
             backgroundColor: transactionType === 'income' ? themeColors.incomeBackground : themeColors.expenseBackground, 
             padding: 12, 
             borderRadius: 8, 
-            marginBottom: 20 
+            marginBottom: 15 
           }}>
             <Text variant="bodySmall" style={{ 
               color: transactionType === 'income' ? themeColors.incomeText : themeColors.expenseText,

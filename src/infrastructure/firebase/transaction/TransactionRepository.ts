@@ -1,3 +1,4 @@
+// INFRASTRUCTURE - Repository Implementation
 import { injectable } from 'tsyringe';
 import { 
   collection, 
@@ -5,11 +6,14 @@ import {
   query, 
   where, 
   getDocs, 
-  serverTimestamp 
+  serverTimestamp,
+  doc,
+  deleteDoc,
+  updateDoc
 } from 'firebase/firestore';
 import { db } from '@/infrastructure/firebase/firebaseConfig';
 import { ITransactionRepository } from '@/domain/repository/ITransactionRepository';
-import { Transaction } from '@/domain/models/Transaction';
+import { Transaction, TransactionDetail } from '@/domain/models/Transaction';
 import { TransactionVo } from '@/domain/valueObjects/TransactionVo';
 import { BalanceRegularizationVo, calculateRegularizationTransaction } from '@/domain/valueObjects/BalanceRegularizationVo';
 
@@ -35,7 +39,8 @@ export class TransactionRepository implements ITransactionRepository {
       type: transactionData.type,
       amount: transactionData.amount,
       description: transactionData.description,
-      isRegularization: transactionData.isRegularization || false, // Incluir el flag
+      detail: transactionData.detail || [],
+      isRegularization: transactionData.isRegularization || false,
       createdAt: serverTimestamp(),
     };
 
@@ -46,7 +51,6 @@ export class TransactionRepository implements ITransactionRepository {
     await addDoc(collection(db, 'transactions'), cleanTransaction);
   }
 
-  // NUEVO MÉTODO: Regularizar balance
   async regularizeBalance(userId: string, regularizationData: BalanceRegularizationVo): Promise<void> {
     const transactionData = calculateRegularizationTransaction(regularizationData);
     
@@ -54,13 +58,12 @@ export class TransactionRepository implements ITransactionRepository {
       throw new Error('No hay diferencia en el balance, no se requiere regularización');
     }
 
-    // Crear la transacción de regularización
     const regularizationTransaction: TransactionVo = {
       ...transactionData,
-      isRegularization: true
+      isRegularization: true,
+      detail: []
     };
 
-    // Usar el método existente para agregar la transacción
     await this.addTransaction(userId, regularizationTransaction);
   }
 
@@ -73,7 +76,8 @@ export class TransactionRepository implements ITransactionRepository {
     const querySnapshot = await getDocs(q);
     let transactions = querySnapshot.docs.map(doc => ({
       id: doc.id,
-      ...doc.data()
+      ...doc.data(),
+      detail: doc.data().detail || [] // Asegurar que detail siempre sea un array
     })) as Transaction[];
     
     transactions = transactions.sort((a, b) => {
@@ -85,7 +89,6 @@ export class TransactionRepository implements ITransactionRepository {
     return transactions;
   }
 
-  // NUEVO MÉTODO: Calcular balance actual
   async getCurrentBalance(userId: string): Promise<number> {
     const transactions = await this.getTransactionsByUser(userId);
     
@@ -96,5 +99,28 @@ export class TransactionRepository implements ITransactionRepository {
         return balance - transaction.amount;
       }
     }, 0);
+  }
+
+  // NUEVOS MÉTODOS
+  async deleteTransaction(transactionId: string): Promise<void> {
+    try {
+      const transactionRef = doc(db, 'transactions', transactionId);
+      await deleteDoc(transactionRef);
+      console.log('Transaction deleted successfully:', transactionId);
+    } catch (error) {
+      console.error('Error deleting transaction:', error);
+      throw new Error('Error al eliminar la transacción');
+    }
+  }
+
+  async updateTransactionDetail(transactionId: string, detail: TransactionDetail[]): Promise<void> {
+    try {
+      const transactionRef = doc(db, 'transactions', transactionId);
+      await updateDoc(transactionRef, { detail });
+      console.log('Transaction detail updated successfully:', transactionId);
+    } catch (error) {
+      console.error('Error updating transaction detail:', error);
+      throw new Error('Error al actualizar el detalle de la transacción');
+    }
   }
 }
