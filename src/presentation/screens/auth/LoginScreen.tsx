@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { View, KeyboardAvoidingView, Platform, ScrollView } from 'react-native';
+import React, { useState } from "react";
+import { View, KeyboardAvoidingView, Platform, ScrollView } from "react-native";
 import {
   Text,
   TextInput,
@@ -9,10 +9,13 @@ import {
   Snackbar,
   HelperText,
   Divider,
-} from 'react-native-paper';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { useForm, Controller } from 'react-hook-form';
-import { useAuth } from '@/application/hooks/useAuth';
+  useTheme,
+  IconButton,
+} from "react-native-paper";
+import { SafeAreaView } from "react-native-safe-area-context";
+import { Formik } from "formik";
+import * as Yup from "yup";
+import { useAuth } from "@/application/hooks/useAuth";
 // import { useGoogleAuth } from '@/application/hooks/useGoogleAuth'; // 🆕 Hook de Google
 
 interface LoginFormData {
@@ -20,246 +23,431 @@ interface LoginFormData {
   password: string;
 }
 
+// Esquema de validación con Yup
+const loginValidationSchema = Yup.object().shape({
+  email: Yup.string()
+    .email("Ingresa un email válido")
+    .required("El email es requerido"),
+  password: Yup.string()
+    .min(6, "La contraseña debe tener al menos 6 caracteres")
+    .required("La contraseña es requerida"),
+});
+
 export const LoginScreen = ({ navigation }: { navigation: any }) => {
+  const theme = useTheme();
   const { login, loading: authLoading } = useAuth();
-  // const { signInWithGoogle, loading: googleLoading } = useGoogleAuth();
   const [showPassword, setShowPassword] = useState(false);
   const [snackbarVisible, setSnackbarVisible] = useState(false);
-  const [snackbarMessage, setSnackbarMessage] = useState('');
-  
-  const loading = authLoading //|| googleLoading;
-  
-  const {
-    control,
-    handleSubmit,
-    formState: { errors },
-  } = useForm<LoginFormData>({
-    defaultValues: { email: '', password: '' }
-  });
+  const [snackbarMessage, setSnackbarMessage] = useState("");
+  const [loginMode, setLoginMode] = useState<'select' | 'email' | 'google'>('select');
+
+  const loading = authLoading;
+
+  const initialValues: LoginFormData = {
+    email: "",
+    password: "",
+  };
 
   const showSnackbar = (message: string) => {
     setSnackbarMessage(message);
     setSnackbarVisible(true);
   };
 
-  const onSubmit = async (data: LoginFormData) => {
+  const onSubmit = async (values: LoginFormData) => {
     try {
-      await login(data.email.trim().toLowerCase(), data.password);
-      showSnackbar('¡Bienvenido de vuelta!');
+      await login(values.email.trim().toLowerCase(), values.password);
+      showSnackbar("¡Bienvenido de vuelta!");
     } catch (error: any) {
-      showSnackbar(error.message || 'Error al iniciar sesión');
+      showSnackbar(error.message || "Error al iniciar sesión");
     }
   };
 
-  // 🆕 Función para login con Google 
-  const handleGoogleLogin = async () => {
-    try {
-      // const user = await signInWithGoogle();
-      
-      // // Verificar si es usuario nuevo
-      // const isNewUser = user.metadata.createdAt === user.metadata.updatedAt;
-      
-      // if (isNewUser) {
-      //   showSnackbar('¡Cuenta creada con Google! Bienvenido a Finanzas Personales');
-      // } else {
-      //   showSnackbar('¡Bienvenido de vuelta!');
-      // }
-    } catch (error: any) {
-      console.error('Google login error:', error);
-      showSnackbar(error.message || 'Error al iniciar sesión con Google');
-    }
+  const handleGoogleLogin = () => {
+    // Aquí navegarías a la pantalla de Google o ejecutarías el login
+    setLoginMode('google');
+    showSnackbar("Redirigiendo a Google...");
+    // navigation.navigate('GoogleLogin'); // Descomenta cuando tengas la pantalla
   };
 
-  return (
-    <SafeAreaView style={{ flex: 1 }}>
-      <KeyboardAvoidingView 
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        style={{ flex: 1 }}
-      >
-        <ScrollView 
-          contentContainerStyle={{ 
-            flexGrow: 1, 
-            padding: 16, 
-            justifyContent: 'center' 
-          }}
-          showsVerticalScrollIndicator={false}
-        >
-          {/* Header con Logo */}
-          <View style={{ alignItems: 'center', marginBottom: 32 }}>
-            <Avatar.Icon 
-              size={80} 
-              icon="wallet" 
-              style={{ marginBottom: 16, backgroundColor: '#E3F2FD' }}
-            />
-            <Text variant="headlineMedium" style={{ fontWeight: 'bold', textAlign: 'center', marginBottom: 8 }}>
-              Finanzas Personales
-            </Text>
-            <Text variant="bodyLarge" style={{ textAlign: 'center', color: '#666' }}>
-              Controla tus ingresos y gastos de manera inteligente
-            </Text>
-          </View>
+  // Pantalla principal con opciones
+  if (loginMode === 'select') {
+    return (
+      <SafeAreaView style={{ flex: 1, backgroundColor: theme.colors.background }}>
+        <View style={{ flex: 1 }}>
+          {/* Contenido superior */}
+          <ScrollView
+            contentContainerStyle={{
+              flexGrow: 1,
+              padding: 20,
+              justifyContent: "center",
+            }}
+            showsVerticalScrollIndicator={false}
+          >
+            {/* Header */}
+            <View style={{ alignItems: "center", marginBottom: 48 }}>
+              <Avatar.Icon
+                size={120}
+                icon="wallet"
+                style={{
+                  backgroundColor: theme.colors.primary,
+                  elevation: 6,
+                  marginBottom: 24,
+                }}
+              />
+              <Text
+                variant="headlineLarge"
+                style={{
+                  fontWeight: "bold",
+                  textAlign: "center",
+                  marginBottom: 8,
+                  color: theme.colors.onBackground,
+                }}
+              >
+                Finanzas Personales
+              </Text>
+              <Text
+                variant="bodyLarge"
+                style={{
+                  textAlign: "center",
+                  color: theme.colors.onSurfaceVariant,
+                  paddingHorizontal: 20,
+                  lineHeight: 24,
+                }}
+              >
+                Controla tus ingresos y gastos de forma inteligente
+              </Text>
+            </View>
 
-          {/* Card del Formulario */}
-          <Card mode="elevated" style={{ marginBottom: 24 }}>
-            <Card.Content style={{ padding: 24 }}>
-              <Text variant="headlineSmall" style={{ textAlign: 'center', marginBottom: 24, fontWeight: 'bold' }}>
+            {/* Información adicional o features */}
+            <View style={{ alignItems: "center", marginBottom: 32 }}>
+              <Text
+                variant="titleMedium"
+                style={{
+                  color: theme.colors.onBackground,
+                  marginBottom: 16,
+                  fontWeight: "600",
+                }}
+              >
+                ¿Por qué elegir nuestra app?
+              </Text>
+              
+              <View style={{ gap: 12, paddingHorizontal: 20 }}>
+                {[
+                  { icon: "chart-line", text: "Reportes detallados" },
+                  { icon: "shield-check", text: "Datos seguros" },
+                  { icon: "clock-fast", text: "Acceso rápido" },
+                ].map((feature, index) => (
+                  <View key={index} style={{ 
+                    flexDirection: "row", 
+                    alignItems: "center", 
+                    gap: 12 
+                  }}>
+                    <Avatar.Icon
+                      size={40}
+                      icon={feature.icon}
+                      style={{
+                        backgroundColor: theme.colors.primaryContainer,
+                      }}
+                    />
+                    <Text style={{ 
+                      color: theme.colors.onSurface,
+                      fontSize: 16
+                    }}>
+                      {feature.text}
+                    </Text>
+                  </View>
+                ))}
+              </View>
+            </View>
+          </ScrollView>
+
+          {/* Footer fijo abajo con opciones */}
+          <Card 
+            mode="elevated" 
+            style={{ 
+              borderTopLeftRadius: 24,
+              borderTopRightRadius: 24,
+              borderBottomLeftRadius: 0,
+              borderBottomRightRadius: 0,
+              elevation: 8,
+              margin: 0,
+            }}
+          >
+            <Card.Content style={{ padding: 20, paddingBottom: 32 }}>
+              <Text
+                variant="titleMedium"
+                style={{
+                  textAlign: "center",
+                  marginBottom: 20,
+                  fontWeight: "600",
+                  color: theme.colors.onSurface,
+                }}
+              >
                 Iniciar Sesión
               </Text>
 
-              {/* 🆕 Botón de Google - Lo ponemos primero */}
-              <Button
-                mode="outlined"
-                onPress={handleGoogleLogin}
-                loading={loading}
-                disabled={loading}
-                style={{ 
-                  marginBottom: 20, 
-                  paddingVertical: 8,
-                  borderColor: '#4285F4'
-                }}
-                labelStyle={{ fontSize: 16, fontWeight: 'bold', color: '#4285F4' }}
-                icon="google"
-              >
-                {loading ? 'Conectando...' : 'Continuar con Google'}
-              </Button>
+              {/* Contenedor de botones */}
+              <View style={{ gap: 10 }}>
+                {/* Botón Google */}
+                <Button
+                  mode="contained"
+                  onPress={handleGoogleLogin}
+                  loading={loading}
+                  disabled={loading}
+                  style={{
+                    borderRadius: 10,
+                    backgroundColor: theme.colors.primary,
+                  }}
+                  labelStyle={{
+                    fontSize: 14,
+                    fontWeight: "600",
+                  }}
+                  icon="google"
+                  contentStyle={{ 
+                    flexDirection: "row-reverse", 
+                    paddingVertical: 4,
+                    paddingHorizontal: 16 
+                  }}
+                >
+                  Continuar con Google
+                </Button>
 
-              {/* Divider */}
-              <View style={{ 
-                flexDirection: 'row', 
-                alignItems: 'center', 
-                marginVertical: 20 
-              }}>
-                <Divider style={{ flex: 1 }} />
-                <Text variant="bodyMedium" style={{ marginHorizontal: 16, color: '#666' }}>
-                  o
-                </Text>
-                <Divider style={{ flex: 1 }} />
+                {/* Botón Email */}
+                <Button
+                  mode="outlined"
+                  onPress={() => setLoginMode('email')}
+                  style={{
+                    borderRadius: 10,
+                  }}
+                  labelStyle={{
+                    fontSize: 14,
+                    fontWeight: "600",
+                  }}
+                  icon="email"
+                  contentStyle={{ 
+                    paddingVertical: 4,
+                    paddingHorizontal: 16 
+                  }}
+                >
+                  Continuar con Email
+                </Button>
               </View>
+            </Card.Content>
+          </Card>
+        </View>
 
-              {/* Campo Email */}
-              <Controller
-                control={control}
-                name="email"
-                rules={{
-                  required: 'El email es requerido',
-                  pattern: {
-                    value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i,
-                    message: 'Ingresa un email válido'
-                  }
-                }}
-                render={({ field: { onChange, onBlur, value } }) => (
-                  <View style={{ marginBottom: 8 }}>
-                    <TextInput
-                      label="Correo Electrónico"
-                      value={value}
-                      onChangeText={onChange}
-                      onBlur={onBlur}
-                      mode="outlined"
-                      keyboardType="email-address"
-                      autoCapitalize="none"
-                      autoCorrect={false}
-                      left={<TextInput.Icon icon="email" />}
-                      error={!!errors.email}
-                    />
-                    <HelperText type="error" visible={!!errors.email}>
-                      {errors.email?.message}
-                    </HelperText>
-                  </View>
+        {/* Snackbar */}
+        <Snackbar
+          visible={snackbarVisible}
+          onDismiss={() => setSnackbarVisible(false)}
+          duration={4000}
+          action={{
+            label: "OK",
+            onPress: () => setSnackbarVisible(false),
+          }}
+        >
+          {snackbarMessage}
+        </Snackbar>
+      </SafeAreaView>
+    );
+  }
+
+  // Pantalla de login con email (sin Google)
+  return (
+    <SafeAreaView style={{ flex: 1, backgroundColor: theme.colors.background }}>
+      {/* Header fijo arriba */}
+      <View style={{ 
+        flexDirection: "row", 
+        alignItems: "center", 
+        paddingHorizontal: 20,
+        paddingVertical: 12,
+        backgroundColor: theme.colors.background,
+        elevation: 2,
+      }}>
+        <IconButton
+          icon="arrow-left"
+          size={24}
+          onPress={() => setLoginMode('select')}
+        />
+        <Text
+          variant="titleLarge"
+          style={{
+            fontWeight: "600",
+            color: theme.colors.onBackground,
+            flex: 1,
+            textAlign: "center",
+            marginRight: 48, // Compensar el botón
+          }}
+        >
+          Iniciar Sesión
+        </Text>
+      </View>
+
+      <KeyboardAvoidingView
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
+        style={{ flex: 1 }}
+      >
+        <ScrollView
+          contentContainerStyle={{
+            flexGrow: 1,
+            padding: 20,
+            justifyContent: "center",
+            paddingTop: 40, // Sube el contenido un poco
+          }}
+          showsVerticalScrollIndicator={false}
+        >
+          {/* Logo pequeño */}
+          <View style={{ alignItems: "center", marginBottom: 16 }}>
+            <Avatar.Icon
+              size={64}
+              icon="wallet"
+              style={{
+                backgroundColor: theme.colors.primary,
+                elevation: 3,
+                marginBottom: 8,
+              }}
+            />
+            <Text
+              variant="bodyMedium"
+              style={{
+                textAlign: "center",
+                color: theme.colors.onSurfaceVariant,
+              }}
+            >
+              Ingresa tus credenciales para continuar
+            </Text>
+          </View>
+
+          {/* Formulario con Formik */}
+          <Card mode="elevated" style={{ borderRadius: 16, elevation: 3 }}>
+            <Card.Content style={{ padding: 20 }}>
+              <Formik
+                initialValues={initialValues}
+                validationSchema={loginValidationSchema}
+                onSubmit={onSubmit}
+              >
+                {({
+                  handleChange,
+                  handleBlur,
+                  handleSubmit,
+                  values,
+                  errors,
+                  touched,
+                  isValid,
+                }) => (
+                  <>
+                    {/* Email */}
+                    <View style={{ marginBottom: 2 }}>
+                      <TextInput
+                        label="Correo electrónico"
+                        value={values.email}
+                        onChangeText={handleChange("email")}
+                        onBlur={handleBlur("email")}
+                        mode="outlined"
+                        keyboardType="email-address"
+                        autoCapitalize="none"
+                        autoCorrect={false}
+                        left={<TextInput.Icon icon="email" />}
+                        error={!!(errors.email && touched.email)}
+                      />
+                      <HelperText
+                        type="error"
+                        visible={!!(errors.email && touched.email)}
+                      >
+                        {errors.email}
+                      </HelperText>
+                    </View>
+
+                    {/* Contraseña */}
+                    <View style={{ marginBottom: 2 }}>
+                      <TextInput
+                        label="Contraseña"
+                        value={values.password}
+                        onChangeText={handleChange("password")}
+                        onBlur={handleBlur("password")}
+                        mode="outlined"
+                        secureTextEntry={!showPassword}
+                        left={<TextInput.Icon icon="lock" />}
+                        right={
+                          <TextInput.Icon
+                            icon={showPassword ? "eye-off" : "eye"}
+                            onPress={() => setShowPassword(!showPassword)}
+                          />
+                        }
+                        error={!!(errors.password && touched.password)}
+                      />
+                      <HelperText
+                        type="error"
+                        visible={!!(errors.password && touched.password)}
+                      >
+                        {errors.password}
+                      </HelperText>
+                    </View>
+
+                    {/* ¿Olvidaste? */}
+                    <Button
+                      mode="text"
+                      onPress={() => showSnackbar("Función próximamente")}
+                      style={{ alignSelf: "flex-end", marginBottom: 12 }}
+                      labelStyle={{ fontSize: 13 }}
+                    >
+                      ¿Olvidaste tu contraseña?
+                    </Button>
+
+                    {/* Login */}
+                    <Button
+                      mode="contained"
+                      onPress={() => handleSubmit()}
+                      loading={loading}
+                      disabled={loading || !isValid}
+                      style={{
+                        borderRadius: 10,
+                        marginBottom: 2,
+                      }}
+                      labelStyle={{ fontSize: 15, fontWeight: "600" }}
+                      icon="login"
+                      contentStyle={{ paddingVertical: 4 }}
+                    >
+                      {loading ? "Iniciando..." : "Iniciar Sesión"}
+                    </Button>
+
+                    {/* Registro - Solo en pantalla de email */}
+                    <View
+                      style={{
+                        flexDirection: "row",
+                        justifyContent: "center",
+                        alignItems: "center",
+                      }}
+                    >
+                      <Text style={{ 
+                        color: theme.colors.onSurfaceVariant,
+                        fontSize: 14 
+                      }}>
+                        ¿No tienes cuenta?{" "}
+                      </Text>
+                      <Button
+                        mode="text"
+                        onPress={() => navigation.navigate("Register")}
+                        labelStyle={{ fontSize: 14, fontWeight: "600" }}
+                      >
+                        Regístrate
+                      </Button>
+                    </View>
+                  </>
                 )}
-              />
-
-              {/* Campo Contraseña */}
-              <Controller
-                control={control}
-                name="password"
-                rules={{
-                  required: 'La contraseña es requerida',
-                  minLength: {
-                    value: 6,
-                    message: 'La contraseña debe tener al menos 6 caracteres'
-                  }
-                }}
-                render={({ field: { onChange, onBlur, value } }) => (
-                  <View style={{ marginBottom: 8 }}>
-                    <TextInput
-                      label="Contraseña"
-                      value={value}
-                      onChangeText={onChange}
-                      onBlur={onBlur}
-                      mode="outlined"
-                      secureTextEntry={!showPassword}
-                      left={<TextInput.Icon icon="lock" />}
-                      right={
-                        <TextInput.Icon 
-                          icon={showPassword ? "eye-off" : "eye"}
-                          onPress={() => setShowPassword(!showPassword)}
-                        />
-                      }
-                      error={!!errors.password}
-                    />
-                    <HelperText type="error" visible={!!errors.password}>
-                      {errors.password?.message}
-                    </HelperText>
-                  </View>
-                )}
-              />
-
-              {/* Enlace Olvidé mi contraseña */}
-              <Button 
-                mode="text" 
-                onPress={() => showSnackbar('Función próximamente disponible')}
-                style={{ alignSelf: 'flex-end', marginVertical: 8 }}
-                labelStyle={{ fontSize: 14 }}
-              >
-                ¿Olvidaste tu contraseña?
-              </Button>
-
-              {/* Botón de Login */}
-              <Button
-                mode="contained"
-                onPress={handleSubmit(onSubmit)}
-                loading={loading}
-                disabled={loading}
-                style={{ marginVertical: 16, paddingVertical: 8 }}
-                labelStyle={{ fontSize: 16, fontWeight: 'bold' }}
-                icon="login"
-              >
-                {loading ? 'Iniciando sesión...' : 'Iniciar Sesión'}
-              </Button>
-
-              {/* Divider */}
-              <View style={{ 
-                flexDirection: 'row', 
-                alignItems: 'center', 
-                marginVertical: 20 
-              }}>
-                <Divider style={{ flex: 1 }} />
-                <Text variant="bodyMedium" style={{ marginHorizontal: 16, color: '#666' }}>
-                  ¿No tienes cuenta?
-                </Text>
-                <Divider style={{ flex: 1 }} />
-              </View>
-
-              {/* Botón de Registro */}
-              <Button
-                mode="outlined"
-                onPress={() => navigation.navigate('Register')}
-                icon="account-plus"
-              >
-                Crear Nueva Cuenta
-              </Button>
+              </Formik>
             </Card.Content>
           </Card>
         </ScrollView>
       </KeyboardAvoidingView>
 
-      {/* Snackbar para mensajes */}
+      {/* Snackbar */}
       <Snackbar
         visible={snackbarVisible}
         onDismiss={() => setSnackbarVisible(false)}
         duration={4000}
         action={{
-          label: 'OK',
+          label: "OK",
           onPress: () => setSnackbarVisible(false),
         }}
       >
