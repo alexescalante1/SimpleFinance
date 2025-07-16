@@ -95,18 +95,6 @@ export const lightTheme = {
     scrim: 'rgba(0, 0, 0, 0.32)',
   },
   
-  // Configuraciones adicionales para componentes financieros
-  roundness: 12, // Bordes más redondeados para modernidad
-  
-  // Elevaciones personalizadas
-  elevation: {
-    level0: 'transparent',
-    level1: 'rgba(0, 0, 0, 0.05)',
-    level2: 'rgba(0, 0, 0, 0.08)',
-    level3: 'rgba(0, 0, 0, 0.11)',
-    level4: 'rgba(0, 0, 0, 0.12)',
-    level5: 'rgba(0, 0, 0, 0.14)',
-  },
 };
 
 export const darkTheme = {
@@ -133,9 +121,9 @@ export const darkTheme = {
     onTertiaryContainer: '#FFE082',
     
     // Superficies oscuras profesionales
-    surface: '#1A1C1E',
+    surface: '#161616ff',
     onSurface: '#E6E1E5',
-    surfaceVariant: '#242629',
+    surfaceVariant: '#1c1c1cff',
     onSurfaceVariant: '#C4C7C5',
     surfaceTint: '#64B5F6',
     
@@ -169,73 +157,5 @@ export const darkTheme = {
     // Shadows para dark mode
     shadow: 'rgba(0, 0, 0, 0.4)',
     scrim: 'rgba(0, 0, 0, 0.6)',
-  },
-  
-  roundness: 12,
-  
-  // Elevaciones para dark mode
-  elevation: {
-    level0: 'transparent',
-    level1: 'rgba(255, 255, 255, 0.05)',
-    level2: 'rgba(255, 255, 255, 0.08)',
-    level3: 'rgba(255, 255, 255, 0.11)',
-    level4: 'rgba(255, 255, 255, 0.12)',
-    level5: 'rgba(255, 255, 255, 0.14)',
-  },
-};
-
-// Utilidades para componentes financieros
-export const financialUtils = {
-  // Función para obtener color según valor monetario
-  getAmountColor: (amount: number, isDark: boolean = false) => {
-    if (amount > 0) return isDark ? '#4CAF50' : financialColors.success;
-    if (amount < 0) return isDark ? '#FF5252' : financialColors.danger;
-    return isDark ? '#90A4AE' : financialColors.financialGray;
-  },
-  
-  // Función para obtener color de tendencia
-  getTrendColor: (trend: 'up' | 'down' | 'neutral', isDark: boolean = false) => {
-    switch (trend) {
-      case 'up': return isDark ? '#4CAF50' : financialColors.success;
-      case 'down': return isDark ? '#FF5252' : financialColors.danger;
-      case 'neutral': return isDark ? '#90A4AE' : financialColors.financialGray;
-    }
-  },
-  
-  // Gradientes para gráficos
-  gradients: {
-    profit: ['#4CAF50', '#81C784'],
-    loss: ['#F44336', '#EF5350'],
-    neutral: ['#9E9E9E', '#BDBDBD'],
-    premium: [financialColors.gold, financialColors.goldLight],
-  },
-};
-
-// Tema específico para componentes financieros
-export const financialComponentTheme = {
-  // Card de balance
-  balanceCard: {
-    borderRadius: 16,
-    elevation: 4,
-    shadowOpacity: 0.1,
-  },
-  
-  // Botones de transacción
-  transactionButton: {
-    borderRadius: 12,
-    minHeight: 48,
-  },
-  
-  // Inputs de moneda
-  currencyInput: {
-    borderRadius: 8,
-    fontSize: 18,
-    fontWeight: '600',
-  },
-  
-  // Cards de categoría
-  categoryCard: {
-    borderRadius: 12,
-    minHeight: 80,
   },
 };

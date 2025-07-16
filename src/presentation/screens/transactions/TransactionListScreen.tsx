@@ -7,23 +7,23 @@ import {
   ActivityIndicator,
   Searchbar,
   SegmentedButtons,
-  useTheme,
   IconButton,
   Menu,
   Divider,
   Snackbar,
+  useTheme,
 } from "react-native-paper";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useTransactions } from "@/application/hooks/useTransactions";
-import { DeleteConfirmationModal } from "@/presentation/components/specific/DeleteConfirmationModal";
-import { TransactionDetailModal } from "@/presentation/components/specific/TransactionDetailModal";
+import { DeleteConfirmationModal } from "@/presentation/screens/transactions/DeleteConfirmationModal";
+import { TransactionDetailModal } from "@/presentation/screens/transactions/TransactionDetailModal";
 import { Transaction, TransactionDetail } from "@/domain/models/Transaction";
 
-// Tipos explícitos
 type FilterType = "all" | "income" | "expense";
 
 const TransactionListScreen: React.FC = () => {
   const theme = useTheme();
+
   const {
     transactions,
     loading,
@@ -36,8 +36,6 @@ const TransactionListScreen: React.FC = () => {
   const [refreshing, setRefreshing] = useState<boolean>(false);
   const [searchQuery, setSearchQuery] = useState<string>("");
   const [filterType, setFilterType] = useState<FilterType>("all");
-
-  // Estados para modales y menús
   const [selectedTransaction, setSelectedTransaction] =
     useState<Transaction | null>(null);
   const [showDeleteModal, setShowDeleteModal] = useState<boolean>(false);
@@ -45,25 +43,9 @@ const TransactionListScreen: React.FC = () => {
   const [menuVisible, setMenuVisible] = useState<{ [key: string]: boolean }>(
     {}
   );
-
-  // Snackbar
   const [snackbarVisible, setSnackbarVisible] = useState<boolean>(false);
   const [snackbarMessage, setSnackbarMessage] = useState<string>("");
 
-  // Definir colores basados en el tema
-  const themeColors = {
-    text: theme.colors.onSurface,
-    textSecondary: theme.colors.onSurfaceVariant,
-    refreshColor: theme.colors.primary,
-    success: theme.dark ? "#4CAF50" : "#27AE60",
-    error: theme.dark ? "#F44336" : "#E74C3C",
-    incomeBackground: theme.dark ? "rgba(76, 175, 80, 0.15)" : "#E8F5E8",
-    expenseBackground: theme.dark ? "rgba(244, 67, 54, 0.15)" : "#FCE8E8",
-    incomeChipText: theme.dark ? "#81C784" : "#2E7D32",
-    expenseChipText: theme.dark ? "#E57373" : "#C62828",
-  };
-
-  // Función para pull-to-refresh
   const onRefresh = async (): Promise<void> => {
     setRefreshing(true);
     try {
@@ -76,23 +58,20 @@ const TransactionListScreen: React.FC = () => {
     }
   };
 
-  // Filtrar y buscar transacciones
   const filteredTransactions: Transaction[] = useMemo(() => {
     let filtered: Transaction[] = transactions;
 
-    // Filtrar por tipo
     if (filterType !== "all") {
       filtered = filtered.filter(
         (transaction: Transaction) => transaction.type === filterType
       );
     }
 
-    // Filtrar por búsqueda
     if (searchQuery.trim()) {
       filtered = filtered.filter(
         (transaction: Transaction) =>
           transaction.description
-            .toLowerCase()
+            ?.toLowerCase()
             .includes(searchQuery.toLowerCase()) ||
           transaction.amount.toString().includes(searchQuery) ||
           transaction.detail?.some((detail) =>
@@ -104,18 +83,18 @@ const TransactionListScreen: React.FC = () => {
     return filtered;
   }, [transactions, filterType, searchQuery]);
 
-  // Formatear fecha de manera más robusta
   const formatDate = (createdAt: any): string => {
     try {
       if (!createdAt || !createdAt.toDate) {
         return "Fecha no disponible";
       }
-
       const date: Date = createdAt.toDate();
       return date.toLocaleDateString("es-ES", {
         day: "2-digit",
         month: "2-digit",
         year: "numeric",
+        hour: "2-digit",
+        minute: "2-digit",
       });
     } catch (error: unknown) {
       console.error("Error al formatear fecha:", error);
@@ -123,7 +102,6 @@ const TransactionListScreen: React.FC = () => {
     }
   };
 
-  // Funciones para manejar menús
   const toggleMenu = (transactionId: string) => {
     setMenuVisible((prev) => ({
       ...prev,
@@ -138,7 +116,6 @@ const TransactionListScreen: React.FC = () => {
     }));
   };
 
-  // Funciones para manejar acciones
   const handleDeletePress = (transaction: Transaction) => {
     setSelectedTransaction(transaction);
     closeMenu(transaction.id);
@@ -176,7 +153,7 @@ const TransactionListScreen: React.FC = () => {
       showSnackbar("Detalle actualizado correctamente");
     } catch (error: any) {
       console.error("Error al guardar detalle:", error);
-      throw error; // Relanzar para que el modal maneje el error
+      throw error;
     }
   };
 
@@ -185,27 +162,13 @@ const TransactionListScreen: React.FC = () => {
     setSnackbarVisible(true);
   };
 
-  // Handler para cambio de filtro
-  const handleFilterChange = (value: string): void => {
-    setFilterType(value as FilterType);
-  };
-
-  // Handler para cambio de búsqueda
-  const handleSearchChange = (query: string): void => {
-    setSearchQuery(query);
-  };
-
-  // Loading inicial
   if (loadingStates.fetching && transactions.length === 0) {
     return (
       <SafeAreaView
         style={{ flex: 1, justifyContent: "center", alignItems: "center" }}
       >
         <ActivityIndicator size="large" />
-        <Text
-          variant="bodyLarge"
-          style={{ marginTop: 16, color: themeColors.text }}
-        >
+        <Text variant="bodyLarge" style={{ marginTop: 16 }}>
           Cargando transacciones...
         </Text>
       </SafeAreaView>
@@ -217,23 +180,14 @@ const TransactionListScreen: React.FC = () => {
       <ScrollView
         style={{ flex: 1, padding: 16 }}
         refreshControl={
-          <RefreshControl
-            refreshing={refreshing}
-            onRefresh={onRefresh}
-            colors={[themeColors.refreshColor]}
-            tintColor={themeColors.refreshColor}
-          />
+          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
         }
       >
         {/* Header */}
         <View style={{ marginBottom: 20 }}>
           <Text
             variant="headlineMedium"
-            style={{
-              marginBottom: 16,
-              textAlign: "center",
-              color: themeColors.text,
-            }}
+            style={{ marginBottom: 16, textAlign: "center" }}
           >
             Mis Transacciones
           </Text>
@@ -250,10 +204,7 @@ const TransactionListScreen: React.FC = () => {
               }}
             >
               <ActivityIndicator size="small" />
-              <Text
-                variant="bodySmall"
-                style={{ marginLeft: 8, color: themeColors.textSecondary }}
-              >
+              <Text variant="bodySmall" style={{ marginLeft: 8 }}>
                 {loadingStates.deleting
                   ? "Eliminando..."
                   : loadingStates.updatingDetail
@@ -263,15 +214,10 @@ const TransactionListScreen: React.FC = () => {
             </View>
           )}
 
-          {/* Contador de transacciones */}
           {transactions.length > 0 && (
             <Text
               variant="bodyMedium"
-              style={{
-                textAlign: "center",
-                color: themeColors.textSecondary,
-                marginBottom: 16,
-              }}
+              style={{ textAlign: "center", marginBottom: 16 }}
             >
               {filteredTransactions.length} de {transactions.length}{" "}
               transacciones
@@ -280,26 +226,14 @@ const TransactionListScreen: React.FC = () => {
         </View>
 
         {transactions.length === 0 ? (
-          /* Estado vacío */
-          <Card mode="outlined">
+          <Card>
             <Card.Content style={{ alignItems: "center", padding: 40 }}>
-              <Text
-                variant="bodyLarge"
-                style={{
-                  color: themeColors.textSecondary,
-                  textAlign: "center",
-                }}
-              >
+              <Text variant="bodyLarge" style={{ textAlign: "center" }}>
                 Aún no tienes transacciones registradas
               </Text>
               <Text
                 variant="bodyMedium"
-                style={{
-                  color: themeColors.textSecondary,
-                  marginTop: 8,
-                  textAlign: "center",
-                  opacity: 0.7,
-                }}
+                style={{ marginTop: 8, textAlign: "center", opacity: 0.7 }}
               >
                 Ve al inicio y registra tu primer movimiento
               </Text>
@@ -307,18 +241,19 @@ const TransactionListScreen: React.FC = () => {
           </Card>
         ) : (
           <>
-            {/* Barra de búsqueda */}
             <Searchbar
               placeholder="Buscar por descripción, monto o detalle..."
-              onChangeText={handleSearchChange}
+              onChangeText={setSearchQuery}
               value={searchQuery}
-              style={{ marginBottom: 16 }}
+              style={{
+                marginBottom: 16,
+                backgroundColor: theme.colors.surface,
+              }}
             />
 
-            {/* Filtros */}
             <SegmentedButtons
               value={filterType}
-              onValueChange={handleFilterChange}
+              onValueChange={(value) => setFilterType(value as FilterType)}
               buttons={[
                 { value: "all", label: "Todas" },
                 { value: "income", label: "Ingresos" },
@@ -327,27 +262,15 @@ const TransactionListScreen: React.FC = () => {
               style={{ marginBottom: 20 }}
             />
 
-            {/* Lista de transacciones */}
             {filteredTransactions.length === 0 ? (
-              <Card mode="outlined">
+              <Card>
                 <Card.Content style={{ alignItems: "center", padding: 40 }}>
-                  <Text
-                    variant="bodyLarge"
-                    style={{
-                      color: themeColors.textSecondary,
-                      textAlign: "center",
-                    }}
-                  >
+                  <Text variant="bodyLarge" style={{ textAlign: "center" }}>
                     No se encontraron transacciones
                   </Text>
                   <Text
                     variant="bodyMedium"
-                    style={{
-                      color: themeColors.textSecondary,
-                      marginTop: 8,
-                      textAlign: "center",
-                      opacity: 0.7,
-                    }}
+                    style={{ marginTop: 8, textAlign: "center", opacity: 0.7 }}
                   >
                     {searchQuery
                       ? "Intenta con otro término de búsqueda"
@@ -359,8 +282,10 @@ const TransactionListScreen: React.FC = () => {
               filteredTransactions.map((transaction: Transaction) => (
                 <Card
                   key={transaction.id}
-                  mode="outlined"
-                  style={{ marginBottom: 12 }}
+                  style={{
+                    marginBottom: 12,
+                    backgroundColor: theme.colors.surface,
+                  }}
                 >
                   <Card.Content>
                     <View
@@ -371,6 +296,13 @@ const TransactionListScreen: React.FC = () => {
                       }}
                     >
                       <View style={{ flex: 1 }}>
+                        <Text
+                          variant="titleMedium"
+                          style={{ marginBottom: 16 }}
+                        >
+                          {transaction.description || "Sin descripción"}
+                        </Text>
+
                         <View
                           style={{
                             flexDirection: "row",
@@ -380,24 +312,8 @@ const TransactionListScreen: React.FC = () => {
                         >
                           <Chip
                             mode="outlined"
-                            textStyle={{
-                              fontSize: 12,
-                              color:
-                                transaction.type === "income"
-                                  ? themeColors.incomeChipText
-                                  : themeColors.expenseChipText,
-                            }}
-                            style={{
-                              marginRight: 8,
-                              backgroundColor:
-                                transaction.type === "income"
-                                  ? themeColors.incomeBackground
-                                  : themeColors.expenseBackground,
-                              borderColor:
-                                transaction.type === "income"
-                                  ? themeColors.incomeChipText
-                                  : themeColors.expenseChipText,
-                            }}
+                            textStyle={{ fontSize: 12 }}
+                            style={{ marginRight: 8 }}
                             icon={
                               transaction.type === "income" ? "plus" : "minus"
                             }
@@ -417,22 +333,11 @@ const TransactionListScreen: React.FC = () => {
                             </Chip>
                           )}
 
-                          <Text
-                            variant="bodySmall"
-                            style={{ color: themeColors.textSecondary }}
-                          >
+                          <Text variant="bodySmall">
                             {formatDate(transaction.createdAt)}
                           </Text>
                         </View>
 
-                        <Text
-                          variant="bodyLarge"
-                          style={{ marginBottom: 4, color: themeColors.text }}
-                        >
-                          {transaction.description || "Sin descripción"}
-                        </Text>
-
-                        {/* Mostrar cantidad de detalles si existen */}
                         {transaction.detail &&
                           transaction.detail.length > 0 && (
                             <View
@@ -461,8 +366,8 @@ const TransactionListScreen: React.FC = () => {
                           style={{
                             color:
                               transaction.type === "income"
-                                ? themeColors.success
-                                : themeColors.error,
+                                ? "#4CAF50"
+                                : "#F44336",
                             fontWeight: "bold",
                             marginBottom: 4,
                           }}
@@ -471,7 +376,6 @@ const TransactionListScreen: React.FC = () => {
                           {transaction.amount?.toFixed(2) || "0.00"}
                         </Text>
 
-                        {/* Menú de opciones */}
                         <Menu
                           visible={menuVisible[transaction.id] || false}
                           onDismiss={() => closeMenu(transaction.id)}
@@ -482,18 +386,23 @@ const TransactionListScreen: React.FC = () => {
                               onPress={() => toggleMenu(transaction.id)}
                             />
                           }
+                          contentStyle={{
+                            backgroundColor: theme.colors.surface,
+                            borderRadius: 8,
+                            borderWidth: 1,
+                            borderColor: theme.colors.outlineVariant,
+                          }}
                         >
                           <Menu.Item
                             onPress={() => handleDetailPress(transaction)}
                             title="Ver/Editar Detalle"
-                            leadingIcon="text-box-edit"
+                            leadingIcon="pencil"
                           />
                           <Divider />
                           <Menu.Item
                             onPress={() => handleDeletePress(transaction)}
                             title="Eliminar"
                             leadingIcon="delete"
-                            titleStyle={{ color: themeColors.error }}
                           />
                         </Menu>
                       </View>
@@ -508,7 +417,6 @@ const TransactionListScreen: React.FC = () => {
         <View style={{ height: 50 }} />
       </ScrollView>
 
-      {/* Modal de confirmación de eliminación */}
       <DeleteConfirmationModal
         visible={showDeleteModal}
         onDismiss={() => {
@@ -520,7 +428,6 @@ const TransactionListScreen: React.FC = () => {
         loading={loadingStates.deleting}
       />
 
-      {/* Modal de detalle de transacción */}
       <TransactionDetailModal
         visible={showDetailModal}
         onDismiss={() => {
@@ -532,7 +439,6 @@ const TransactionListScreen: React.FC = () => {
         loading={loadingStates.updatingDetail}
       />
 
-      {/* Snackbar para mensajes */}
       <Snackbar
         visible={snackbarVisible}
         onDismiss={() => setSnackbarVisible(false)}

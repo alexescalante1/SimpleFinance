@@ -12,7 +12,7 @@ import { LoginScreen } from '../screens/auth/LoginScreen';
 import { RegisterScreen } from '../screens/auth/RegisterScreen';
 import { HomeScreen } from '../screens/home/HomeScreen';
 import { TransactionListScreen } from '../screens/transactions/TransactionListScreen';
-import { ReportsScreen } from '../screens/transactions/ReportsScreen';
+import { ReportsScreen } from '../screens/reports/ReportsScreen';
 
 // Tipos de rutas (Stack)
 export type RootStackParamList = {
@@ -59,7 +59,7 @@ const MainTabs = () => {
         screenOptions={({ route }) => ({
           tabBarIcon: ({ color, size, focused }) => {
             const icons: Record<keyof TabParamList, string> = {
-              Home: 'home',
+              Home: 'dashboard',
               Transactions: 'swap-horiz',
               Reports: 'summarize', // ícono más elegante para reportes
             };
@@ -84,7 +84,6 @@ const MainTabs = () => {
             height: 60,
             borderTopWidth: 0.3,
             borderColor: theme.colors.outlineVariant || '#ccc',
-            elevation: 4,
           },
           headerShown: false,
         })}

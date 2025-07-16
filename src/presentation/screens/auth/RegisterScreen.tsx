@@ -19,7 +19,6 @@ import {
   useTheme,
   IconButton,
 } from "react-native-paper";
-import { SafeAreaView } from "react-native-safe-area-context";
 import { Formik } from "formik";
 import * as Yup from "yup";
 import DateTimePicker from "@react-native-community/datetimepicker";

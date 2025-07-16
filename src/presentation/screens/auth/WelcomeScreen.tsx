@@ -8,7 +8,6 @@ import {
   Snackbar,
   useTheme,
 } from "react-native-paper";
-import { SafeAreaView } from "react-native-safe-area-context";
 import { useFocusEffect } from "@react-navigation/native";
 import { OptimizedParticlesBackground } from "@/presentation/components/common/animated/OptimizedParticlesBackground";
 
