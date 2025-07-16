@@ -5,12 +5,12 @@ import Icon from 'react-native-vector-icons/MaterialIcons';
 import { useAuth } from '../../application/hooks/useAuth';
 import { Platform, View } from 'react-native';
 import { useTheme } from 'react-native-paper';
-
+import { SafeAreaView } from 'react-native-safe-area-context';
 // Pantallas
 import { WelcomeScreen } from '../screens/auth/WelcomeScreen';
 import { LoginScreen } from '../screens/auth/LoginScreen';
 import { RegisterScreen } from '../screens/auth/RegisterScreen';
-import { DashboardScreen } from '../screens/home/DashboardScreen';
+import { HomeScreen } from '../screens/home/HomeScreen';
 import { TransactionListScreen } from '../screens/transactions/TransactionListScreen';
 import { ReportsScreen } from '../screens/transactions/ReportsScreen';
 
@@ -24,7 +24,7 @@ export type RootStackParamList = {
 
 // Tipos de rutas (Tabs)
 export type TabParamList = {
-  Dashboard: undefined;
+  Home: undefined;
   Transactions: undefined;
   Reports: undefined;
 };
@@ -37,39 +37,59 @@ const ScreenWrapper: React.FC<{ children: React.ReactNode }> = ({ children }) =>
   const theme = useTheme();
   
   return (
-    <View style={{ 
-      flex: 1, 
-      backgroundColor: theme.colors.background 
-    }}>
+    <SafeAreaView
+      edges={['top', 'bottom', 'left', 'right']}
+      style={{
+        flex: 1,
+        backgroundColor: theme.colors.background,
+      }}
+    >
       {children}
-    </View>
+    </SafeAreaView>
   );
 };
 
 // Tabs principales con wrapper
 const MainTabs = () => {
   const theme = useTheme();
-  
+
   return (
     <ScreenWrapper>
       <Tab.Navigator
         screenOptions={({ route }) => ({
-          tabBarIcon: ({ color, size }) => {
+          tabBarIcon: ({ color, size, focused }) => {
             const icons: Record<keyof TabParamList, string> = {
-              Dashboard: 'dashboard',
+              Home: 'home',
               Transactions: 'swap-horiz',
-              Reports: 'report',
+              Reports: 'summarize', // ícono más elegante para reportes
             };
 
-            return <Icon name={icons[route.name as keyof TabParamList]} size={size} color={color} />;
+            return (
+              <Icon
+                name={icons[route.name as keyof TabParamList]}
+                size={22}
+                color={focused ? theme.colors.primary : theme.colors.onSurfaceVariant}
+                style={{ marginBottom: -4 }}
+              />
+            );
           },
-          headerShown: false,
+          tabBarLabelStyle: {
+            fontSize: 11,
+            marginBottom: 4,
+          },
+          tabBarActiveTintColor: theme.colors.primary,
+          tabBarInactiveTintColor: theme.colors.onSurfaceVariant,
           tabBarStyle: {
             backgroundColor: theme.colors.surface,
+            height: 60,
+            borderTopWidth: 0.3,
+            borderColor: theme.colors.outlineVariant || '#ccc',
+            elevation: 4,
           },
+          headerShown: false,
         })}
       >
-        <Tab.Screen name="Dashboard" component={DashboardScreen} />
+        <Tab.Screen name="Home" component={HomeScreen} />
         <Tab.Screen name="Transactions" component={TransactionListScreen} />
         <Tab.Screen name="Reports" component={ReportsScreen} />
       </Tab.Navigator>

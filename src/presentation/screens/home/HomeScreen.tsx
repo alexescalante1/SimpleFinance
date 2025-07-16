@@ -51,7 +51,7 @@ interface Transaction {
   };
 }
 
-const DashboardScreen: React.FC = () => {
+const HomeScreen: React.FC = () => {
   const theme = useTheme();
   const { user, logout } = useAuth();
   const {
@@ -555,417 +555,409 @@ const DashboardScreen: React.FC = () => {
   }
 
   return (
-    <SafeAreaView style={{ flex: 1 }}>
-      <ScrollView
-        style={{ flex: 1, padding: 16 }}
-        refreshControl={
-          <RefreshControl
-            refreshing={refreshing}
-            onRefresh={onRefresh}
-            colors={[themeColors.refreshColor]}
-            tintColor={themeColors.refreshColor}
-          />
-        }
-      >
-        {/* Header */}
-        <Card mode="contained" style={getCardStyle()}>
-          <Card.Content>
-            <Text variant="headlineMedium">¡Hola, {user?.fullName}!</Text>
-            <Text
-              variant="bodyLarge"
-              style={{ color: themeColors.textSecondary }}
+    <ScrollView
+      style={{ flex: 1, padding: 16 }}
+      refreshControl={
+        <RefreshControl
+          refreshing={refreshing}
+          onRefresh={onRefresh}
+          colors={[themeColors.refreshColor]}
+          tintColor={themeColors.refreshColor}
+        />
+      }
+    >
+      {/* Header */}
+      <Card mode="contained" style={getCardStyle()}>
+        <Card.Content>
+          <Text variant="headlineMedium">¡Hola, {user?.fullName}!</Text>
+          <Text
+            variant="bodyLarge"
+            style={{ color: themeColors.textSecondary }}
+          >
+            Control simple de finanzas
+          </Text>
+          {loading && (
+            <View
+              style={{
+                flexDirection: "row",
+                alignItems: "center",
+                marginTop: 5,
+              }}
             >
-              Control simple de finanzas
-            </Text>
-            {loading && (
-              <View
-                style={{
-                  flexDirection: "row",
-                  alignItems: "center",
-                  marginTop: 5,
-                }}
+              <ActivityIndicator size="small" />
+              <Text
+                variant="bodySmall"
+                style={{ marginLeft: 5, color: themeColors.textSecondary }}
               >
-                <ActivityIndicator size="small" />
-                <Text
-                  variant="bodySmall"
-                  style={{ marginLeft: 5, color: themeColors.textSecondary }}
-                >
-                  Actualizando...
-                </Text>
-              </View>
-            )}
-          </Card.Content>
-        </Card>
-
-        {/* Botones de acción */}
-        <Card mode="outlined" style={getOutlinedCardStyle()}>
-          <Card.Content>
-            <Text
-              variant="titleLarge"
-              style={{ marginBottom: 16, textAlign: "center" }}
-            >
-              Registrar Movimiento
-            </Text>
-            <Button
-              mode="contained"
-              icon="plus"
-              onPress={() => setShowModal(true)}
-              style={{ marginBottom: 12, backgroundColor: themeColors.success }}
-              disabled={loading}
-            >
-              Agregar Ingreso/Gasto
-            </Button>
-            <Button
-              mode="contained"
-              icon="scale-balance"
-              onPress={() => setShowRegularizeModal(true)}
-              style={{
-                marginBottom: 12,
-                backgroundColor: themeColors.warning,
-              }}
-              disabled={loading}
-            >
-              Regularizar Balance
-            </Button>
-            <RegularizeBalanceModal
-              visible={showRegularizeModal}
-              onDismiss={() => setShowRegularizeModal(false)}
-              currentBalance={currentBalance}
-              onRegularize={regularizeBalance}
-              loading={loading}
-            />
-          </Card.Content>
-        </Card>
-
-        {/* Selector de período */}
-        <Card mode="outlined" style={getOutlinedCardStyle()}>
-          <Card.Content>
-            <Text
-              variant="titleMedium"
-              style={{ marginBottom: 12, textAlign: "center" }}
-            >
-              Ver por período
-            </Text>
-            <SegmentedButtons
-              value={chartPeriod}
-              onValueChange={(value: string) =>
-                setChartPeriod(value as ChartPeriod)
-              }
-              buttons={[
-                { value: "daily", label: "Día" },
-                { value: "monthly", label: "Mes" },
-                { value: "quarterly", label: "Trim." },
-                { value: "yearly", label: "Año" },
-              ]}
-            />
-          </Card.Content>
-        </Card>
-
-        {/* Resumen del período */}
-        <Card mode="outlined" style={getOutlinedCardStyle()}>
-          <Card.Content>
-            <View
-              style={{
-                flexDirection: "row",
-                justifyContent: "space-between",
-                alignItems: "center",
-                marginBottom: 16,
-              }}
-            >
-              <Text variant="titleLarge">Resumen: {getPeriodTitle()}</Text>
-              <Chip mode="outlined" compact>
-                {getTransactionsForCurrentPeriod().length} transacciones
-              </Chip>
+                Actualizando...
+              </Text>
             </View>
+          )}
+        </Card.Content>
+      </Card>
 
-            <View
-              style={{
-                flexDirection: "row",
-                justifyContent: "space-around",
-                marginBottom: 16,
-              }}
-            >
-              <View style={{ alignItems: "center" }}>
-                <Text
-                  variant="bodySmall"
-                  style={{ color: themeColors.success }}
-                >
-                  Ingresos
-                </Text>
-                <Text
-                  variant="headlineSmall"
-                  style={{ color: themeColors.success, fontWeight: "bold" }}
-                >
-                  S/ {summary.income.toFixed(2)}
-                </Text>
-              </View>
+      {/* Botones de acción */}
+      <Card mode="outlined" style={getOutlinedCardStyle()}>
+        <Card.Content>
+          <Text
+            variant="titleLarge"
+            style={{ marginBottom: 16, textAlign: "center" }}
+          >
+            Registrar Movimiento
+          </Text>
+          <Button
+            mode="contained"
+            icon="plus"
+            onPress={() => setShowModal(true)}
+            style={{ marginBottom: 12, backgroundColor: themeColors.success }}
+            disabled={loading}
+          >
+            Agregar Ingreso/Gasto
+          </Button>
+          <Button
+            mode="contained"
+            icon="scale-balance"
+            onPress={() => setShowRegularizeModal(true)}
+            style={{
+              marginBottom: 12,
+              backgroundColor: themeColors.warning,
+            }}
+            disabled={loading}
+          >
+            Regularizar Balance
+          </Button>
+          <RegularizeBalanceModal
+            visible={showRegularizeModal}
+            onDismiss={() => setShowRegularizeModal(false)}
+            currentBalance={currentBalance}
+            onRegularize={regularizeBalance}
+            loading={loading}
+          />
+        </Card.Content>
+      </Card>
 
-              <View style={{ alignItems: "center" }}>
-                <Text
-                  variant="bodySmall"
-                  style={{ color: themeColors.expense }}
-                >
-                  Gastos
-                </Text>
-                <Text
-                  variant="headlineSmall"
-                  style={{ color: themeColors.expense, fontWeight: "bold" }}
-                >
-                  S/ {summary.expenses.toFixed(2)}
-                </Text>
-              </View>
-            </View>
+      {/* Selector de período */}
+      <Card mode="outlined" style={getOutlinedCardStyle()}>
+        <Card.Content>
+          <Text
+            variant="titleMedium"
+            style={{ marginBottom: 12, textAlign: "center" }}
+          >
+            Ver por período
+          </Text>
+          <SegmentedButtons
+            value={chartPeriod}
+            onValueChange={(value: string) =>
+              setChartPeriod(value as ChartPeriod)
+            }
+            buttons={[
+              { value: "daily", label: "Día" },
+              { value: "monthly", label: "Mes" },
+              { value: "quarterly", label: "Trim." },
+              { value: "yearly", label: "Año" },
+            ]}
+          />
+        </Card.Content>
+      </Card>
 
-            <View
-              style={{
-                alignItems: "center",
-                paddingTop: 16,
-                borderTopWidth: 1,
-                borderTopColor: themeColors.border,
-              }}
-            >
-              <Text variant="bodySmall" style={{ color: themeColors.text }}>
-                Balance Total
+      {/* Resumen del período */}
+      <Card mode="outlined" style={getOutlinedCardStyle()}>
+        <Card.Content>
+          <View
+            style={{
+              flexDirection: "row",
+              justifyContent: "space-between",
+              alignItems: "center",
+              marginBottom: 16,
+            }}
+          >
+            <Text variant="titleLarge">Resumen: {getPeriodTitle()}</Text>
+            <Chip mode="outlined" compact>
+              {getTransactionsForCurrentPeriod().length} transacciones
+            </Chip>
+          </View>
+
+          <View
+            style={{
+              flexDirection: "row",
+              justifyContent: "space-around",
+              marginBottom: 16,
+            }}
+          >
+            <View style={{ alignItems: "center" }}>
+              <Text variant="bodySmall" style={{ color: themeColors.success }}>
+                Ingresos
               </Text>
               <Text
-                variant="headlineMedium"
-                style={{
-                  color:
-                    summary.balance >= 0
-                      ? themeColors.success
-                      : themeColors.expense,
-                  fontWeight: "bold",
-                }}
+                variant="headlineSmall"
+                style={{ color: themeColors.success, fontWeight: "bold" }}
               >
-                S/ {summary.balance.toFixed(2)}
+                S/ {summary.income.toFixed(2)}
               </Text>
             </View>
-          </Card.Content>
-        </Card>
 
-        {/* Gráfico de líneas con eje Y fijo */}
-        <Card mode="outlined" style={getOutlinedCardStyle()}>
-          <Card.Content>
-            <Text
-              variant="titleLarge"
-              style={{ marginBottom: 8, textAlign: "center" }}
-            >
-              Flujo Financiero
-            </Text>
-
-            {/* Contenedor del gráfico con eje Y fijo */}
-            <View
-              style={{ position: "relative", height: 250, marginBottom: 0 }}
-            >
-              {/* Eje Y fijo (lado izquierdo) */}
-              <View
-                style={{
-                  position: "absolute",
-                  left: 0,
-                  top: 0,
-                  height: 200,
-                  width: 60,
-                  backgroundColor: themeColors.chartBackground,
-                  borderRightWidth: 1,
-                  borderRightColor: themeColors.border,
-                  zIndex: 10,
-                  paddingRight: 8,
-                }}
+            <View style={{ alignItems: "center" }}>
+              <Text variant="bodySmall" style={{ color: themeColors.expense }}>
+                Gastos
+              </Text>
+              <Text
+                variant="headlineSmall"
+                style={{ color: themeColors.expense, fontWeight: "bold" }}
               >
-                {/* Generar etiquetas del eje Y basadas en los datos y alineadas con las líneas del gráfico */}
-                {(() => {
-                  const data = chartData.datasets[0]?.data || [];
-                  const maxValue = Math.max(...data, 0);
-                  const minValue = Math.min(...data, 0);
-                  const range = maxValue - minValue || 1;
-                  const segments = 4;
-                  const yLabels = [];
+                S/ {summary.expenses.toFixed(2)}
+              </Text>
+            </View>
+          </View>
 
-                  const topMargin = 25;
-                  const bottomMargin = 25;
-                  const availableHeight = 200 - topMargin - bottomMargin;
-                  const segmentHeight = availableHeight / segments;
+          <View
+            style={{
+              alignItems: "center",
+              paddingTop: 16,
+              borderTopWidth: 1,
+              borderTopColor: themeColors.border,
+            }}
+          >
+            <Text variant="bodySmall" style={{ color: themeColors.text }}>
+              Balance Total
+            </Text>
+            <Text
+              variant="headlineMedium"
+              style={{
+                color:
+                  summary.balance >= 0
+                    ? themeColors.success
+                    : themeColors.expense,
+                fontWeight: "bold",
+              }}
+            >
+              S/ {summary.balance.toFixed(2)}
+            </Text>
+          </View>
+        </Card.Content>
+      </Card>
 
-                  for (let i = segments; i >= 0; i--) {
-                    const value = minValue + (range * i) / segments;
-                    yLabels.push(
-                      <View
-                        key={i}
+      {/* Gráfico de líneas con eje Y fijo */}
+      <Card mode="outlined" style={getOutlinedCardStyle()}>
+        <Card.Content>
+          <Text
+            variant="titleLarge"
+            style={{ marginBottom: 8, textAlign: "center" }}
+          >
+            Flujo Financiero
+          </Text>
+
+          {/* Contenedor del gráfico con eje Y fijo */}
+          <View style={{ position: "relative", height: 250, marginBottom: 0 }}>
+            {/* Eje Y fijo (lado izquierdo) */}
+            <View
+              style={{
+                position: "absolute",
+                left: 0,
+                top: 0,
+                height: 200,
+                width: 60,
+                backgroundColor: themeColors.chartBackground,
+                borderRightWidth: 1,
+                borderRightColor: themeColors.border,
+                zIndex: 10,
+                paddingRight: 8,
+              }}
+            >
+              {/* Generar etiquetas del eje Y basadas en los datos y alineadas con las líneas del gráfico */}
+              {(() => {
+                const data = chartData.datasets[0]?.data || [];
+                const maxValue = Math.max(...data, 0);
+                const minValue = Math.min(...data, 0);
+                const range = maxValue - minValue || 1;
+                const segments = 4;
+                const yLabels = [];
+
+                const topMargin = 25;
+                const bottomMargin = 25;
+                const availableHeight = 200 - topMargin - bottomMargin;
+                const segmentHeight = availableHeight / segments;
+
+                for (let i = segments; i >= 0; i--) {
+                  const value = minValue + (range * i) / segments;
+                  yLabels.push(
+                    <View
+                      key={i}
+                      style={{
+                        position: "absolute",
+                        top: topMargin + (segments - i) * segmentHeight - 6,
+                        right: 8,
+                        width: 52,
+                      }}
+                    >
+                      <Text
+                        variant="bodySmall"
                         style={{
-                          position: "absolute",
-                          top: topMargin + (segments - i) * segmentHeight - 6,
-                          right: 8,
-                          width: 52,
+                          color: themeColors.textSecondary,
+                          fontSize: 10,
+                          textAlign: "right",
+                          lineHeight: 12,
                         }}
                       >
-                        <Text
-                          variant="bodySmall"
-                          style={{
-                            color: themeColors.textSecondary,
-                            fontSize: 10,
-                            textAlign: "right",
-                            lineHeight: 12,
-                          }}
-                        >
-                          S/{value.toFixed(0)}
-                        </Text>
-                      </View>
-                    );
-                  }
-                  return yLabels;
-                })()}
-              </View>
-
-              {/* Gráfico principal con margen izquierdo */}
-              {chartData.labels.length > 0 &&
-              chartData.datasets[0].data.length > 0 ? (
-                <View style={{ marginLeft: 0 }}>
-                  <ScrollView
-                    ref={scrollViewRef}
-                    horizontal={true}
-                    showsHorizontalScrollIndicator={true}
-                    style={{ marginVertical: 8 }}
-                    contentContainerStyle={{
-                      paddingRight: 40,
-                      paddingLeft: 0,
-                    }}
-                  >
-                    <LineChart
-                      data={chartData}
-                      width={getChartWidth() - 60}
-                      height={200}
-                      chartConfig={{
-                        backgroundColor: themeColors.chartBackground,
-                        backgroundGradientFrom: themeColors.chartBackground,
-                        backgroundGradientTo: themeColors.chartBackground,
-                        decimalPlaces: 0,
-                        color: (opacity: number = 1) => {
-                          const color = themeColors.chartLine;
-                          // Extraer los valores RGB del color hex
-                          const r = parseInt(color.slice(1, 3), 16);
-                          const g = parseInt(color.slice(3, 5), 16);
-                          const b = parseInt(color.slice(5, 7), 16);
-                          return `rgba(${r}, ${g}, ${b}, ${opacity})`;
-                        },
-                        labelColor: (opacity: number = 1) => {
-                          const color = themeColors.text;
-                          const r = parseInt(color.slice(1, 3), 16);
-                          const g = parseInt(color.slice(3, 5), 16);
-                          const b = parseInt(color.slice(5, 7), 16);
-                          return `rgba(${r}, ${g}, ${b}, ${opacity})`;
-                        },
-                        style: {
-                          borderRadius: 5,
-                        },
-                        propsForDots: {
-                          r: "3",
-                          strokeWidth: "1",
-                          stroke: themeColors.chartLine,
-                          fill: themeColors.chartLine,
-                        },
-                        propsForLabels: {
-                          fontSize: chartPeriod === "daily" ? 8 : 12,
-                        },
-                      }}
-                      bezier
-                      style={{
-                        borderRadius: 5,
-                      }}
-                      withHorizontalLabels={false}
-                      withVerticalLabels={true}
-                      withDots={true}
-                      withShadow={false}
-                      yAxisInterval={1}
-                      segments={4}
-                      onDataPointClick={(data) => {
-                        console.log("Clicked point:", data);
-                      }}
-                    />
-                  </ScrollView>
-                </View>
-              ) : (
-                <View
-                  style={{ alignItems: "center", padding: 40, marginLeft: 0 }}
-                >
-                  <Text
-                    variant="bodyLarge"
-                    style={{
-                      color: themeColors.textSecondary,
-                      textAlign: "center",
-                    }}
-                  >
-                    Error al cargar el gráfico
-                  </Text>
-                  <Text
-                    variant="bodySmall"
-                    style={{
-                      color: themeColors.textSecondary,
-                      textAlign: "center",
-                      marginTop: 8,
-                    }}
-                  >
-                    Labels: {chartData.labels.length}, Data:{" "}
-                    {chartData.datasets[0]?.data.length || 0}
-                  </Text>
-                </View>
-              )}
+                        S/{value.toFixed(0)}
+                      </Text>
+                    </View>
+                  );
+                }
+                return yLabels;
+              })()}
             </View>
 
-            <Text
-              variant="bodySmall"
-              style={{ textAlign: "center", color: themeColors.textSecondary }}
-            >
-              {getChartDescription()}
-            </Text>
-
-            {/* Indicador de scroll mejorado */}
-            {getChartWidth() > screenWidth - 100 && (
-              <View style={{ alignItems: "center" }}>
-                <Text
-                  variant="bodySmall"
-                  style={{
-                    textAlign: "center",
-                    color: themeColors.textSecondary,
-                    marginBottom: 4,
+            {/* Gráfico principal con margen izquierdo */}
+            {chartData.labels.length > 0 &&
+            chartData.datasets[0].data.length > 0 ? (
+              <View style={{ marginLeft: 0 }}>
+                <ScrollView
+                  ref={scrollViewRef}
+                  horizontal={true}
+                  showsHorizontalScrollIndicator={true}
+                  style={{ marginVertical: 8 }}
+                  contentContainerStyle={{
+                    paddingRight: 40,
+                    paddingLeft: 0,
                   }}
                 >
-                  ⬅️ Desliza hacia la izquierda para ver historial
+                  <LineChart
+                    data={chartData}
+                    width={getChartWidth() - 60}
+                    height={200}
+                    chartConfig={{
+                      backgroundColor: themeColors.chartBackground,
+                      backgroundGradientFrom: themeColors.chartBackground,
+                      backgroundGradientTo: themeColors.chartBackground,
+                      decimalPlaces: 0,
+                      color: (opacity: number = 1) => {
+                        const color = themeColors.chartLine;
+                        // Extraer los valores RGB del color hex
+                        const r = parseInt(color.slice(1, 3), 16);
+                        const g = parseInt(color.slice(3, 5), 16);
+                        const b = parseInt(color.slice(5, 7), 16);
+                        return `rgba(${r}, ${g}, ${b}, ${opacity})`;
+                      },
+                      labelColor: (opacity: number = 1) => {
+                        const color = themeColors.text;
+                        const r = parseInt(color.slice(1, 3), 16);
+                        const g = parseInt(color.slice(3, 5), 16);
+                        const b = parseInt(color.slice(5, 7), 16);
+                        return `rgba(${r}, ${g}, ${b}, ${opacity})`;
+                      },
+                      style: {
+                        borderRadius: 5,
+                      },
+                      propsForDots: {
+                        r: "3",
+                        strokeWidth: "1",
+                        stroke: themeColors.chartLine,
+                        fill: themeColors.chartLine,
+                      },
+                      propsForLabels: {
+                        fontSize: chartPeriod === "daily" ? 8 : 12,
+                      },
+                    }}
+                    bezier
+                    style={{
+                      borderRadius: 5,
+                    }}
+                    withHorizontalLabels={false}
+                    withVerticalLabels={true}
+                    withDots={true}
+                    withShadow={false}
+                    yAxisInterval={1}
+                    segments={4}
+                    onDataPointClick={(data) => {
+                      console.log("Clicked point:", data);
+                    }}
+                  />
+                </ScrollView>
+              </View>
+            ) : (
+              <View
+                style={{ alignItems: "center", padding: 40, marginLeft: 0 }}
+              >
+                <Text
+                  variant="bodyLarge"
+                  style={{
+                    color: themeColors.textSecondary,
+                    textAlign: "center",
+                  }}
+                >
+                  Error al cargar el gráfico
                 </Text>
                 <Text
                   variant="bodySmall"
                   style={{
+                    color: themeColors.textSecondary,
                     textAlign: "center",
-                    color: themeColors.success,
-                    fontWeight: "bold",
+                    marginTop: 8,
                   }}
                 >
-                  📍 Mostrando fecha actual al lado derecho
+                  Labels: {chartData.labels.length}, Data:{" "}
+                  {chartData.datasets[0]?.data.length || 0}
                 </Text>
               </View>
             )}
+          </View>
 
-            {/* Mensaje si no hay transacciones */}
-            {transactions.length === 0 && (
+          <Text
+            variant="bodySmall"
+            style={{ textAlign: "center", color: themeColors.textSecondary }}
+          >
+            {getChartDescription()}
+          </Text>
+
+          {/* Indicador de scroll mejorado */}
+          {getChartWidth() > screenWidth - 100 && (
+            <View style={{ alignItems: "center" }}>
               <Text
                 variant="bodySmall"
                 style={{
                   textAlign: "center",
                   color: themeColors.textSecondary,
-                  marginTop: 8,
+                  marginBottom: 4,
                 }}
               >
-                ℹ️ Gráfico con valores en cero - Agrega transacciones para ver
-                cambios
+                ⬅️ Desliza hacia la izquierda para ver historial
               </Text>
-            )}
-          </Card.Content>
-        </Card>
-      </ScrollView>
+              <Text
+                variant="bodySmall"
+                style={{
+                  textAlign: "center",
+                  color: themeColors.success,
+                  fontWeight: "bold",
+                }}
+              >
+                📍 Mostrando fecha actual al lado derecho
+              </Text>
+            </View>
+          )}
+
+          {/* Mensaje si no hay transacciones */}
+          {transactions.length === 0 && (
+            <Text
+              variant="bodySmall"
+              style={{
+                textAlign: "center",
+                color: themeColors.textSecondary,
+                marginTop: 8,
+              }}
+            >
+              ℹ️ Gráfico con valores en cero - Agrega transacciones para ver
+              cambios
+            </Text>
+          )}
+        </Card.Content>
+      </Card>
 
       {/* Modal para agregar dinero */}
       <AddMoneyModal visible={showModal} onDismiss={handleModalDismiss} />
-    </SafeAreaView>
+
+      <View style={{ height: 50 }} />
+    </ScrollView>
   );
 };
 
-export { DashboardScreen };
+export { HomeScreen };

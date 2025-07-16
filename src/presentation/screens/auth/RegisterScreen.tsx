@@ -160,437 +160,428 @@ export const RegisterScreen = ({ navigation }: { navigation: any }) => {
 
   return (
     <View style={{ flex: 1, backgroundColor: theme.colors.background }}>
-      <SafeAreaView
-        style={{ flex: 1, backgroundColor: theme.colors.background }}
-        edges={["top", "left", "right"]}
+      {/* Header fijo arriba */}
+      <View
+        style={{
+          flexDirection: "row",
+          alignItems: "center",
+          paddingHorizontal: 20,
+          paddingVertical: 12,
+          backgroundColor: theme.colors.background,
+          elevation: 0,
+        }}
       >
-        {/* Header fijo arriba */}
-        <View
+        <IconButton
+          icon="arrow-left"
+          size={24}
+          onPress={handleGoBack}
+          disabled={isNavigating || loading}
+          style={{ opacity: isNavigating || loading ? 0.5 : 1 }}
+        />
+        <Text
+          variant="titleLarge"
           style={{
-            flexDirection: "row",
-            alignItems: "center",
-            paddingHorizontal: 20,
-            paddingVertical: 12,
-            backgroundColor: theme.colors.background,
-            elevation: 0,
+            fontWeight: "600",
+            color: theme.colors.onBackground,
+            flex: 1,
+            textAlign: "center",
+            marginRight: 48, // Compensar el botón
           }}
         >
-          <IconButton
-            icon="arrow-left"
-            size={24}
-            onPress={handleGoBack}
-            disabled={isNavigating || loading}
-            style={{ opacity: isNavigating || loading ? 0.5 : 1 }}
-          />
-          <Text
-            variant="titleLarge"
-            style={{
-              fontWeight: "600",
-              color: theme.colors.onBackground,
-              flex: 1,
-              textAlign: "center",
-              marginRight: 48, // Compensar el botón
-            }}
-          >
-            Crear Cuenta
-          </Text>
-        </View>
+          Crear Cuenta
+        </Text>
+      </View>
 
-        <KeyboardAvoidingView
-          behavior={Platform.OS === "ios" ? "padding" : "height"}
-          style={{ flex: 1, backgroundColor: theme.colors.background }}
+      <KeyboardAvoidingView
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
+        style={{ flex: 1, backgroundColor: theme.colors.background }}
+      >
+        <Formik
+          initialValues={initialValues}
+          validationSchema={validationSchema}
+          onSubmit={handleSubmit}
         >
-          <Formik
-            initialValues={initialValues}
-            validationSchema={validationSchema}
-            onSubmit={handleSubmit}
-          >
-            {({
-              values,
-              errors,
-              touched,
-              handleChange,
-              handleBlur,
-              setFieldValue,
-              handleSubmit: formikSubmit,
-              isValid,
-            }) => (
-              <ScrollView
-                contentContainerStyle={{
-                  padding: 20,
-                  paddingTop: 10,
-                }}
-                showsVerticalScrollIndicator={false}
-                scrollEventThrottle={16}
-                keyboardShouldPersistTaps="handled"
-                style={{ backgroundColor: theme.colors.background }}
-              >
-                {/* Card del Formulario */}
-                <Card
-                  mode="elevated"
-                  style={{ borderRadius: 16, elevation: 3 }}
-                >
-                  <Card.Content style={{ padding: 20 }}>
-                    {/* Nombre */}
-                    <View style={{ marginBottom: 2 }}>
-                      <TextInput
-                        label="Nombre Completo"
-                        value={values.fullName}
-                        onChangeText={handleChange("fullName")}
-                        onBlur={handleBlur("fullName")}
-                        mode="outlined"
-                        autoCapitalize="words"
-                        error={!!(touched.fullName && errors.fullName)}
-                        left={<TextInput.Icon icon="account" />}
-                      />
-                      <HelperText
-                        type="error"
-                        visible={!!(touched.fullName && errors.fullName)}
-                      >
-                        {errors.fullName}
-                      </HelperText>
-                    </View>
-
-                    {/* Email */}
-                    <View style={{ marginBottom: 2 }}>
-                      <TextInput
-                        label="Correo Electrónico"
-                        value={values.email}
-                        onChangeText={handleChange("email")}
-                        onBlur={handleBlur("email")}
-                        mode="outlined"
-                        keyboardType="email-address"
-                        autoCapitalize="none"
-                        autoCorrect={false}
-                        error={!!(touched.email && errors.email)}
-                        left={<TextInput.Icon icon="email" />}
-                      />
-                      <HelperText
-                        type="error"
-                        visible={!!(touched.email && errors.email)}
-                      >
-                        {errors.email}
-                      </HelperText>
-                    </View>
-
-                    {/* Contraseña */}
-                    <View style={{ marginBottom: 2 }}>
-                      <TextInput
-                        label="Contraseña"
-                        value={values.password}
-                        onChangeText={handleChange("password")}
-                        onBlur={handleBlur("password")}
-                        mode="outlined"
-                        secureTextEntry={!showPassword}
-                        error={!!(touched.password && errors.password)}
-                        left={<TextInput.Icon icon="lock" />}
-                        right={
-                          <TextInput.Icon
-                            icon={showPassword ? "eye-off" : "eye"}
-                            onPress={() => setShowPassword(!showPassword)}
-                          />
-                        }
-                      />
-                      <HelperText
-                        type="error"
-                        visible={!!(touched.password && errors.password)}
-                      >
-                        {errors.password}
-                      </HelperText>
-                    </View>
-
-                    {/* Confirmar Contraseña */}
-                    <View style={{ marginBottom: 2 }}>
-                      <TextInput
-                        label="Confirmar Contraseña"
-                        value={values.confirmPassword}
-                        onChangeText={handleChange("confirmPassword")}
-                        onBlur={handleBlur("confirmPassword")}
-                        mode="outlined"
-                        secureTextEntry={!showConfirmPassword}
-                        error={
-                          !!(touched.confirmPassword && errors.confirmPassword)
-                        }
-                        left={<TextInput.Icon icon="lock-check" />}
-                        right={
-                          <TextInput.Icon
-                            icon={showConfirmPassword ? "eye-off" : "eye"}
-                            onPress={() =>
-                              setShowConfirmPassword(!showConfirmPassword)
-                            }
-                          />
-                        }
-                      />
-                      <HelperText
-                        type="error"
-                        visible={
-                          !!(touched.confirmPassword && errors.confirmPassword)
-                        }
-                      >
-                        {errors.confirmPassword}
-                      </HelperText>
-                    </View>
-
-                    {/* Fecha Nacimiento */}
-                    <View style={{ marginBottom: 2 }}>
-                      <TouchableOpacity
-                        onPress={() => setShowDatePicker(true)}
-                        activeOpacity={0.8}
-                      >
-                        <TextInput
-                          label="Fecha de Nacimiento"
-                          value={formatDate(values.birthDate)}
-                          mode="outlined"
-                          editable={false}
-                          pointerEvents="none"
-                          left={<TextInput.Icon icon="calendar" />}
-                          right={<TextInput.Icon icon="calendar-edit" />}
-                          error={!!(touched.birthDate && errors.birthDate)}
-                        />
-                      </TouchableOpacity>
-                      <HelperText
-                        type="error"
-                        visible={!!(touched.birthDate && errors.birthDate)}
-                      >
-                        {errors.birthDate as string}
-                      </HelperText>
-                    </View>
-
-                    {/* Género */}
-                    <View style={{ marginBottom: 2 }}>
-                      <Text
-                        variant="bodyLarge"
-                        style={{
-                          marginBottom: 8,
-                          color: theme.colors.onBackground,
-                          fontWeight: "500",
-                        }}
-                      >
-                        Género
-                      </Text>
-                      <Surface
-                        style={{
-                          padding: 12,
-                          borderRadius: 10,
-                          backgroundColor: theme.colors.surfaceVariant,
-                        }}
-                        elevation={1}
-                      >
-                        <RadioButton.Group
-                          onValueChange={(value) =>
-                            setFieldValue("gender", value)
-                          }
-                          value={values.gender}
-                        >
-                          <View
-                            style={{
-                              flexDirection: "row",
-                              justifyContent: "space-around",
-                            }}
-                          >
-                            {["masculino", "femenino"].map((g) => (
-                              <View
-                                key={g}
-                                style={{
-                                  flexDirection: "row",
-                                  alignItems: "center",
-                                }}
-                              >
-                                <RadioButton value={g} />
-                                <Text
-                                  style={{ color: theme.colors.onBackground }}
-                                >
-                                  {g.charAt(0).toUpperCase() + g.slice(1)}
-                                </Text>
-                              </View>
-                            ))}
-                          </View>
-                        </RadioButton.Group>
-                      </Surface>
-                      <HelperText
-                        type="error"
-                        visible={!!(touched.gender && errors.gender)}
-                      >
-                        {errors.gender}
-                      </HelperText>
-                    </View>
-
-                    {/* Moneda */}
-                    <View style={{ marginBottom: 16 }}>
-                      <Text
-                        variant="bodyLarge"
-                        style={{
-                          marginBottom: 8,
-                          fontWeight: "500",
-                          color: theme.colors.onBackground,
-                        }}
-                      >
-                        Moneda Principal
-                      </Text>
-
-                      <View
-                        style={{
-                          flexDirection: "row",
-                          gap: 12,
-                          justifyContent: "space-between",
-                        }}
-                      >
-                        {currencies.map((currency) => (
-                          <TouchableOpacity
-                            key={currency.code}
-                            onPress={() =>
-                              setFieldValue("currency", currency.code)
-                            }
-                            style={{
-                              flex: 1,
-                              backgroundColor:
-                                values.currency === currency.code
-                                  ? theme.colors.primaryContainer
-                                  : theme.colors.surfaceVariant,
-                              borderColor:
-                                values.currency === currency.code
-                                  ? theme.colors.primary
-                                  : theme.colors.outline,
-                              borderWidth: 2,
-                              borderRadius: 12,
-                              padding: 16,
-                              alignItems: "center",
-                              elevation:
-                                values.currency === currency.code ? 2 : 0,
-                            }}
-                            activeOpacity={0.7}
-                          >
-                            <Text
-                              style={{
-                                fontSize: 24,
-                                marginBottom: 4,
-                              }}
-                            >
-                              {currency.flag}
-                            </Text>
-                            <Text
-                              style={{
-                                fontSize: 18,
-                                fontWeight: "bold",
-                                color:
-                                  values.currency === currency.code
-                                    ? theme.colors.primary
-                                    : theme.colors.onSurface,
-                                marginBottom: 2,
-                              }}
-                            >
-                              {currency.symbol}
-                            </Text>
-                            <Text
-                              style={{
-                                fontSize: 12,
-                                color:
-                                  values.currency === currency.code
-                                    ? theme.colors.primary
-                                    : theme.colors.onSurfaceVariant,
-                                textAlign: "center",
-                                fontWeight: "500",
-                              }}
-                            >
-                              {currency.code}
-                            </Text>
-                          </TouchableOpacity>
-                        ))}
-                      </View>
-
-                      <HelperText
-                        type="error"
-                        visible={!!(touched.currency && errors.currency)}
-                      >
-                        {errors.currency}
-                      </HelperText>
-                      <HelperText type="info" visible={!errors.currency}>
-                        Esta será tu moneda por defecto para ingresos y gastos
-                      </HelperText>
-                    </View>
-
-                    {/* Botón Registro */}
-                    <Button
-                      mode="contained"
-                      onPress={() => formikSubmit()}
-                      loading={loading}
-                      disabled={loading || !isValid}
-                      icon="account-plus"
-                      style={{
-                        borderRadius: 10,
-                        marginBottom: 2,
-                      }}
-                      labelStyle={{ fontSize: 15, fontWeight: "600" }}
-                      contentStyle={{ paddingVertical: 4 }}
+          {({
+            values,
+            errors,
+            touched,
+            handleChange,
+            handleBlur,
+            setFieldValue,
+            handleSubmit: formikSubmit,
+            isValid,
+          }) => (
+            <ScrollView
+              contentContainerStyle={{
+                padding: 20,
+                paddingTop: 10,
+              }}
+              showsVerticalScrollIndicator={false}
+              scrollEventThrottle={16}
+              keyboardShouldPersistTaps="handled"
+              style={{ backgroundColor: theme.colors.background }}
+            >
+              {/* Card del Formulario */}
+              <Card mode="elevated" style={{ borderRadius: 16, elevation: 3 }}>
+                <Card.Content style={{ padding: 20 }}>
+                  {/* Nombre */}
+                  <View style={{ marginBottom: 2 }}>
+                    <TextInput
+                      label="Nombre Completo"
+                      value={values.fullName}
+                      onChangeText={handleChange("fullName")}
+                      onBlur={handleBlur("fullName")}
+                      mode="outlined"
+                      autoCapitalize="words"
+                      error={!!(touched.fullName && errors.fullName)}
+                      left={<TextInput.Icon icon="account" />}
+                    />
+                    <HelperText
+                      type="error"
+                      visible={!!(touched.fullName && errors.fullName)}
                     >
-                      {loading ? "Creando cuenta..." : "Crear Cuenta"}
-                    </Button>
+                      {errors.fullName}
+                    </HelperText>
+                  </View>
 
-                    {/* Ya tienes cuenta */}
+                  {/* Email */}
+                  <View style={{ marginBottom: 2 }}>
+                    <TextInput
+                      label="Correo Electrónico"
+                      value={values.email}
+                      onChangeText={handleChange("email")}
+                      onBlur={handleBlur("email")}
+                      mode="outlined"
+                      keyboardType="email-address"
+                      autoCapitalize="none"
+                      autoCorrect={false}
+                      error={!!(touched.email && errors.email)}
+                      left={<TextInput.Icon icon="email" />}
+                    />
+                    <HelperText
+                      type="error"
+                      visible={!!(touched.email && errors.email)}
+                    >
+                      {errors.email}
+                    </HelperText>
+                  </View>
+
+                  {/* Contraseña */}
+                  <View style={{ marginBottom: 2 }}>
+                    <TextInput
+                      label="Contraseña"
+                      value={values.password}
+                      onChangeText={handleChange("password")}
+                      onBlur={handleBlur("password")}
+                      mode="outlined"
+                      secureTextEntry={!showPassword}
+                      error={!!(touched.password && errors.password)}
+                      left={<TextInput.Icon icon="lock" />}
+                      right={
+                        <TextInput.Icon
+                          icon={showPassword ? "eye-off" : "eye"}
+                          onPress={() => setShowPassword(!showPassword)}
+                        />
+                      }
+                    />
+                    <HelperText
+                      type="error"
+                      visible={!!(touched.password && errors.password)}
+                    >
+                      {errors.password}
+                    </HelperText>
+                  </View>
+
+                  {/* Confirmar Contraseña */}
+                  <View style={{ marginBottom: 2 }}>
+                    <TextInput
+                      label="Confirmar Contraseña"
+                      value={values.confirmPassword}
+                      onChangeText={handleChange("confirmPassword")}
+                      onBlur={handleBlur("confirmPassword")}
+                      mode="outlined"
+                      secureTextEntry={!showConfirmPassword}
+                      error={
+                        !!(touched.confirmPassword && errors.confirmPassword)
+                      }
+                      left={<TextInput.Icon icon="lock-check" />}
+                      right={
+                        <TextInput.Icon
+                          icon={showConfirmPassword ? "eye-off" : "eye"}
+                          onPress={() =>
+                            setShowConfirmPassword(!showConfirmPassword)
+                          }
+                        />
+                      }
+                    />
+                    <HelperText
+                      type="error"
+                      visible={
+                        !!(touched.confirmPassword && errors.confirmPassword)
+                      }
+                    >
+                      {errors.confirmPassword}
+                    </HelperText>
+                  </View>
+
+                  {/* Fecha Nacimiento */}
+                  <View style={{ marginBottom: 2 }}>
+                    <TouchableOpacity
+                      onPress={() => setShowDatePicker(true)}
+                      activeOpacity={0.8}
+                    >
+                      <TextInput
+                        label="Fecha de Nacimiento"
+                        value={formatDate(values.birthDate)}
+                        mode="outlined"
+                        editable={false}
+                        pointerEvents="none"
+                        left={<TextInput.Icon icon="calendar" />}
+                        right={<TextInput.Icon icon="calendar-edit" />}
+                        error={!!(touched.birthDate && errors.birthDate)}
+                      />
+                    </TouchableOpacity>
+                    <HelperText
+                      type="error"
+                      visible={!!(touched.birthDate && errors.birthDate)}
+                    >
+                      {errors.birthDate as string}
+                    </HelperText>
+                  </View>
+
+                  {/* Género */}
+                  <View style={{ marginBottom: 2 }}>
+                    <Text
+                      variant="bodyLarge"
+                      style={{
+                        marginBottom: 8,
+                        color: theme.colors.onBackground,
+                        fontWeight: "500",
+                      }}
+                    >
+                      Género
+                    </Text>
+                    <Surface
+                      style={{
+                        padding: 12,
+                        borderRadius: 10,
+                        backgroundColor: theme.colors.surfaceVariant,
+                      }}
+                      elevation={1}
+                    >
+                      <RadioButton.Group
+                        onValueChange={(value) =>
+                          setFieldValue("gender", value)
+                        }
+                        value={values.gender}
+                      >
+                        <View
+                          style={{
+                            flexDirection: "row",
+                            justifyContent: "space-around",
+                          }}
+                        >
+                          {["masculino", "femenino"].map((g) => (
+                            <View
+                              key={g}
+                              style={{
+                                flexDirection: "row",
+                                alignItems: "center",
+                              }}
+                            >
+                              <RadioButton value={g} />
+                              <Text
+                                style={{ color: theme.colors.onBackground }}
+                              >
+                                {g.charAt(0).toUpperCase() + g.slice(1)}
+                              </Text>
+                            </View>
+                          ))}
+                        </View>
+                      </RadioButton.Group>
+                    </Surface>
+                    <HelperText
+                      type="error"
+                      visible={!!(touched.gender && errors.gender)}
+                    >
+                      {errors.gender}
+                    </HelperText>
+                  </View>
+
+                  {/* Moneda */}
+                  <View style={{ marginBottom: 16 }}>
+                    <Text
+                      variant="bodyLarge"
+                      style={{
+                        marginBottom: 8,
+                        fontWeight: "500",
+                        color: theme.colors.onBackground,
+                      }}
+                    >
+                      Moneda Principal
+                    </Text>
+
                     <View
                       style={{
                         flexDirection: "row",
-                        justifyContent: "center",
-                        alignItems: "center",
+                        gap: 12,
+                        justifyContent: "space-between",
                       }}
                     >
-                      <Text
-                        style={{
-                          color: theme.colors.onSurfaceVariant,
-                          fontSize: 14,
-                        }}
-                      >
-                        ¿Ya tienes cuenta?{" "}
-                      </Text>
-                      <Button
-                        mode="text"
-                        onPress={handleGoToLogin}
-                        disabled={loading || isNavigating}
-                        labelStyle={{
-                          fontSize: 14,
-                          fontWeight: "600",
-                          opacity: loading || isNavigating ? 0.5 : 1,
-                        }}
-                      >
-                        Iniciar Sesión
-                      </Button>
+                      {currencies.map((currency) => (
+                        <TouchableOpacity
+                          key={currency.code}
+                          onPress={() =>
+                            setFieldValue("currency", currency.code)
+                          }
+                          style={{
+                            flex: 1,
+                            backgroundColor:
+                              values.currency === currency.code
+                                ? theme.colors.primaryContainer
+                                : theme.colors.surfaceVariant,
+                            borderColor:
+                              values.currency === currency.code
+                                ? theme.colors.primary
+                                : theme.colors.outline,
+                            borderWidth: 2,
+                            borderRadius: 12,
+                            padding: 16,
+                            alignItems: "center",
+                            elevation:
+                              values.currency === currency.code ? 2 : 0,
+                          }}
+                          activeOpacity={0.7}
+                        >
+                          <Text
+                            style={{
+                              fontSize: 24,
+                              marginBottom: 4,
+                            }}
+                          >
+                            {currency.flag}
+                          </Text>
+                          <Text
+                            style={{
+                              fontSize: 18,
+                              fontWeight: "bold",
+                              color:
+                                values.currency === currency.code
+                                  ? theme.colors.primary
+                                  : theme.colors.onSurface,
+                              marginBottom: 2,
+                            }}
+                          >
+                            {currency.symbol}
+                          </Text>
+                          <Text
+                            style={{
+                              fontSize: 12,
+                              color:
+                                values.currency === currency.code
+                                  ? theme.colors.primary
+                                  : theme.colors.onSurfaceVariant,
+                              textAlign: "center",
+                              fontWeight: "500",
+                            }}
+                          >
+                            {currency.code}
+                          </Text>
+                        </TouchableOpacity>
+                      ))}
                     </View>
-                  </Card.Content>
-                </Card>
 
-                {/* Date Picker */}
-                {showDatePicker && (
-                  <DateTimePicker
-                    value={values.birthDate}
-                    mode="date"
-                    display="default"
-                    onChange={(event, selectedDate) => {
-                      setShowDatePicker(false);
-                      if (selectedDate)
-                        setFieldValue("birthDate", selectedDate);
+                    <HelperText
+                      type="error"
+                      visible={!!(touched.currency && errors.currency)}
+                    >
+                      {errors.currency}
+                    </HelperText>
+                    <HelperText type="info" visible={!errors.currency}>
+                      Esta será tu moneda por defecto para ingresos y gastos
+                    </HelperText>
+                  </View>
+
+                  {/* Botón Registro */}
+                  <Button
+                    mode="contained"
+                    onPress={() => formikSubmit()}
+                    loading={loading}
+                    disabled={loading || !isValid}
+                    icon="account-plus"
+                    style={{
+                      borderRadius: 10,
+                      marginBottom: 2,
                     }}
-                    maximumDate={new Date()}
-                    minimumDate={new Date(1900, 0, 1)}
-                  />
-                )}
-              </ScrollView>
-            )}
-          </Formik>
-        </KeyboardAvoidingView>
+                    labelStyle={{ fontSize: 15, fontWeight: "600" }}
+                    contentStyle={{ paddingVertical: 4 }}
+                  >
+                    {loading ? "Creando cuenta..." : "Crear Cuenta"}
+                  </Button>
 
-        {/* Snackbar */}
-        <Snackbar
-          visible={snackbarVisible}
-          onDismiss={() => setSnackbarVisible(false)}
-          duration={4000}
-          action={{
-            label: "OK",
-            onPress: () => setSnackbarVisible(false),
-          }}
-        >
-          {snackbarMessage}
-        </Snackbar>
-      </SafeAreaView>
+                  {/* Ya tienes cuenta */}
+                  <View
+                    style={{
+                      flexDirection: "row",
+                      justifyContent: "center",
+                      alignItems: "center",
+                    }}
+                  >
+                    <Text
+                      style={{
+                        color: theme.colors.onSurfaceVariant,
+                        fontSize: 14,
+                      }}
+                    >
+                      ¿Ya tienes cuenta?{" "}
+                    </Text>
+                    <Button
+                      mode="text"
+                      onPress={handleGoToLogin}
+                      disabled={loading || isNavigating}
+                      labelStyle={{
+                        fontSize: 14,
+                        fontWeight: "600",
+                        opacity: loading || isNavigating ? 0.5 : 1,
+                      }}
+                    >
+                      Iniciar Sesión
+                    </Button>
+                  </View>
+                </Card.Content>
+              </Card>
+
+              {/* Date Picker */}
+              {showDatePicker && (
+                <DateTimePicker
+                  value={values.birthDate}
+                  mode="date"
+                  display="default"
+                  onChange={(event, selectedDate) => {
+                    setShowDatePicker(false);
+                    if (selectedDate) setFieldValue("birthDate", selectedDate);
+                  }}
+                  maximumDate={new Date()}
+                  minimumDate={new Date(1900, 0, 1)}
+                />
+              )}
+            </ScrollView>
+          )}
+        </Formik>
+      </KeyboardAvoidingView>
+
+      {/* Snackbar */}
+      <Snackbar
+        visible={snackbarVisible}
+        onDismiss={() => setSnackbarVisible(false)}
+        duration={4000}
+        action={{
+          label: "OK",
+          onPress: () => setSnackbarVisible(false),
+        }}
+      >
+        {snackbarMessage}
+      </Snackbar>
     </View>
   );
 };
