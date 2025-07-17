@@ -1,0 +1,229 @@
+# 📘 Documentación de Entidades - App de Finanzas Personales
+
+Este documento describe el modelo de datos principal utilizado en una aplicación financiera desarrollada con React Native y Firebase. Aquí se detallan todas las entidades, su propósito en el negocio, cómo se relacionan entre sí y ejemplos prácticos para su implementación.
+
+---
+
+## 🧩 Relaciones generales
+
+```mermaid
+erDiagram
+    User ||--o{ Wallet : has
+    User ||--o{ Transaction : makes
+    User ||--o{ RecurringExpense : schedules
+    User ||--o{ Budget : defines
+    User ||--o{ Asset : owns
+    User ||--o{ Liability : owes
+    User ||--o{ IncomeSource : earns
+
+    Wallet ||--o{ Transaction : contains
+    Wallet ||--o{ RecurringExpense : charges
+
+    Category ||--o{ Transaction : classifies
+    Category ||--o{ RecurringExpense : classifies
+    Category ||--o{ IncomeSource : classifies
+    Category ||--o{ Budget : usedFor
+
+    AssetType ||--o{ Wallet : describes
+    AssetType ||--o{ Asset : describes
+
+    LiabilityType ||--o{ Liability : classifies
+```
+
+---
+
+## 👤 Usuario (`User`)
+
+### 📌 Propósito en el negocio:
+
+Representa al cliente de la app. Toda información financiera está atada a su identificador.
+
+### 🧩 Relaciones:
+
+* Tiene muchas `Wallet`, `Transaction`, `Budget`, `RecurringExpense`, `Asset`, `Liability`, `IncomeSource`.
+
+### 🧠 Ejemplo real:
+
+Alex configura su perfil con soles (PEN), idioma español y tema claro. Toda su información se centraliza bajo su ID.
+
+---
+
+## 💼 Billetera (`Wallet`)
+
+### 📌 Propósito en el negocio:
+
+Es una fuente de fondos del usuario (cuenta bancaria, efectivo, billetera digital, etc.).
+
+### 🧩 Relaciones:
+
+* Pertenece a un `User`
+* Relacionada con muchas `Transaction` y `RecurringExpense`
+* Clasificada por un `AssetType`
+
+### 🧠 Ejemplo real:
+
+Alex tiene "Billetera Digital" (efectivo) y "Cuenta BCP" (bancaria), y gestiona movimientos por separado.
+
+---
+
+## 🏷️ Categoría (`Category`)
+
+### 📌 Propósito en el negocio:
+
+Permite clasificar los movimientos financieros del usuario.
+
+### 🧩 Relaciones:
+
+* Usada en `Transaction`, `RecurringExpense`, `IncomeSource`, `Budget`
+* Puede ser de tipo `income` o `expense`
+
+### 🧠 Ejemplo real:
+
+"Sueldo" es una categoría de ingreso, "Internet" una de gasto. Esto le permite a Alex ver en qué gasta más.
+
+---
+
+## 💳 Transacción (`Transaction`)
+
+### 📌 Propósito en el negocio:
+
+Registra un ingreso o egreso puntual de dinero.
+
+### 🧩 Relaciones:
+
+* Asociada a `User`, `Wallet` y `Category`
+* Puede venir de un `RecurringExpense`
+
+### 🧠 Ejemplo real:
+
+Cuando Alex paga el recibo de internet, se registra una transacción de 50 soles tipo `expense`.
+
+---
+
+## 🔁 Gasto Recurrente (`RecurringExpense`)
+
+### 📌 Propósito en el negocio:
+
+Modelo para gastos automáticos que ocurren cada mes, como suscripciones o servicios.
+
+### 🧩 Relaciones:
+
+* Vinculado a `User`, `Wallet`, `Category`
+* Cada ejecución genera una `Transaction`
+
+### 🧠 Ejemplo real:
+
+Netflix se carga el 25 de cada mes desde la billetera digital de Alex sin que él tenga que registrarlo manualmente.
+
+---
+
+## 💰 Fuente de Ingreso (`IncomeSource`)
+
+### 📌 Propósito en el negocio:
+
+Describe ingresos regulares como sueldos o pagos fijos.
+
+### 🧩 Relaciones:
+
+* Pertenece a un `User`
+* Clasificada por una `Category`
+
+### 🧠 Ejemplo real:
+
+Alex gana 2500 soles de su trabajo el 15 de cada mes. Esta entrada se anticipa y se proyecta en su resumen financiero.
+
+---
+
+## 📊 Presupuesto (`Budget`)
+
+### 📌 Propósito en el negocio:
+
+Permite definir un límite de gasto mensual por categoría.
+
+### 🧩 Relaciones:
+
+* Pertenece a un `User`
+* Asociado a una `Category`
+
+### 🧠 Ejemplo real:
+
+Alex define un presupuesto de 100 soles para "Internet" y se alerta cuando llega al 90% del mismo.
+
+---
+
+## 🏠 Activo (`Asset`)
+
+### 📌 Propósito en el negocio:
+
+Registra bienes que forman parte del patrimonio del usuario.
+
+### 🧩 Relaciones:
+
+* Asociado a un `User` y un `AssetType`
+
+### 🧠 Ejemplo real:
+
+La laptop de Alex, valorizada en 1800 soles, se considera un activo fijo y aumenta su patrimonio neto.
+
+---
+
+## 📂 Tipo de Activo (`AssetType`)
+
+### 📌 Propósito en el negocio:
+
+Clasifica los activos en tipos: corrientes, fijos, financieros, intangibles.
+
+### 🧩 Relaciones:
+
+* Usado por `Asset` y `Wallet`
+
+### 🧠 Ejemplo real:
+
+La "Cuenta CTS" es un activo corriente, mientras que una marca registrada podría ser un activo intangible.
+
+---
+
+## 🧾 Pasivo (`Liability`)
+
+### 📌 Propósito en el negocio:
+
+Registra deudas del usuario, como préstamos o créditos.
+
+### 🧩 Relaciones:
+
+* Asociado a un `User` y un `LiabilityType`
+
+### 🧠 Ejemplo real:
+
+Alex tiene un préstamo universitario de 2500 soles, con cuotas mensuales de 200 soles hasta 2026.
+
+---
+
+## 📁 Tipo de Pasivo (`LiabilityType`)
+
+### 📌 Propósito en el negocio:
+
+Clasifica los pasivos según su duración: corto o largo plazo.
+
+### 🧩 Relaciones:
+
+* Usado por `Liability`
+
+### 🧠 Ejemplo real:
+
+El préstamo universitario de Alex se considera un `pasivoLargoPlazo` porque su vencimiento supera los 12 meses.
+
+---
+
+## ✅ Recomendaciones finales
+
+* Todos los datos deben tener `id` para trazabilidad.
+* Usa `camelCase` en toda la estructura.
+* Las fechas deben ser ISO 8601 (`YYYY-MM-DD`).
+* El `User` es el eje central de todo el modelo.
+* `Transaction` es la entidad base para todos los flujos de dinero.
+* Usa `Budget` y `RecurringExpense` para automatización y control.
+
+---
+
+Este modelo está diseñado para ser modular, escalable y perfectamente adaptable a sistemas móviles o web con enfoque en finanzas personales.
