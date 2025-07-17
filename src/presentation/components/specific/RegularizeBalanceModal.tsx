@@ -10,6 +10,8 @@ import {
   Snackbar,
   HelperText,
   useTheme,
+  IconButton,
+  Divider,
 } from 'react-native-paper';
 import { useForm, Controller } from 'react-hook-form';
 
@@ -36,18 +38,6 @@ export const RegularizeBalanceModal: React.FC<RegularizeBalanceModalProps> = ({
   const theme = useTheme();
   const [snackbarVisible, setSnackbarVisible] = useState(false);
   const [snackbarMessage, setSnackbarMessage] = useState('');
-
-  const themeColors = {
-    surface: theme.colors.surface,
-    text: theme.colors.onSurface,
-    textSecondary: theme.colors.onSurfaceVariant,
-    success: theme.dark ? '#4CAF50' : '#27AE60',
-    error: theme.dark ? '#F44336' : '#E74C3C',
-    warning: theme.dark ? '#FF9800' : '#F39C12',
-    incomeBackground: theme.dark ? 'rgba(76, 175, 80, 0.15)' : '#E8F5E8',
-    expenseBackground: theme.dark ? 'rgba(244, 67, 54, 0.15)' : '#FCE8E8',
-    warningBackground: theme.dark ? 'rgba(255, 152, 0, 0.15)' : '#FFF3E0',
-  };
 
   const {
     control,
@@ -143,37 +133,61 @@ export const RegularizeBalanceModal: React.FC<RegularizeBalanceModalProps> = ({
         onDismiss={handleDismiss}
         dismissable={!loading}
         contentContainerStyle={{ 
-          backgroundColor: themeColors.surface, 
+          backgroundColor: theme.colors.surface, 
           margin: 20, 
           borderRadius: 16,
         }}
       >
         <Card.Content style={{ padding: 24 }}>
-          <Text variant="headlineSmall" style={{ 
-            textAlign: 'center', 
+          {/* Header con botón de cerrar */}
+          <View style={{ 
+            flexDirection: 'row',
+            justifyContent: 'space-between',
+            alignItems: 'center',
             marginBottom: 24,
-            color: themeColors.text
           }}>
-            Regularizar Balance
-          </Text>
+            <Text variant="headlineSmall" style={{ 
+              fontWeight: '600',
+              color: theme.colors.onSurface,
+              flex: 1,
+              textAlign: 'center',
+            }}>
+              Regularizar Balance
+            </Text>
+            <IconButton
+              icon="close"
+              size={20}
+              onPress={handleDismiss}
+              disabled={loading}
+              style={{ position: 'absolute', right: -8, top: -8 }}
+            />
+          </View>
 
           {/* Balance actual */}
-          <Card mode="outlined" style={{ marginBottom: 20 }}>
-            <Card.Content>
-              <View style={{ alignItems: 'center' }}>
-                <Text variant="bodyMedium" style={{ color: themeColors.textSecondary }}>
-                  Balance Actual
-                </Text>
-                <Text variant="headlineMedium" style={{ 
-                  color: currentBalance >= 0 ? themeColors.success : themeColors.error,
-                  fontWeight: 'bold',
-                  marginTop: 4
-                }}>
-                  S/ {currentBalance.toFixed(2)}
-                </Text>
-              </View>
-            </Card.Content>
-          </Card>
+          <View style={{
+            backgroundColor: theme.colors.surfaceVariant,
+            padding: 20,
+            borderRadius: 12,
+            marginBottom: 20,
+          }}>
+            <View style={{ alignItems: 'center' }}>
+              <Text 
+                variant="bodyMedium" 
+                style={{ 
+                  color: theme.colors.onSurfaceVariant,
+                  marginBottom: 8,
+                }}
+              >
+                Balance Actual
+              </Text>
+              <Text variant="headlineMedium" style={{ 
+                color: currentBalance >= 0 ? "#4CAF50" : "#F44336",
+                fontWeight: 'bold',
+              }}>
+                S/ {currentBalance.toFixed(2)}
+              </Text>
+            </View>
+          </View>
 
           {/* Balance objetivo */}
           <Controller
@@ -183,7 +197,7 @@ export const RegularizeBalanceModal: React.FC<RegularizeBalanceModalProps> = ({
               validate: validateTargetBalance
             }}
             render={({ field: { onChange, onBlur, value } }) => (
-              <View style={{ marginBottom: 16 }}>
+              <View style={{ marginBottom: 20 }}>
                 <TextInput
                   label="Balance Objetivo (S/)"
                   value={value}
@@ -209,68 +223,87 @@ export const RegularizeBalanceModal: React.FC<RegularizeBalanceModalProps> = ({
 
           {/* Mostrar cálculo de diferencia */}
           {diffData.hasChange && (
-            <Card 
-              mode="outlined" 
-              style={{ 
-                marginBottom: 20,
-                backgroundColor: diffData.type === 'income' 
-                  ? themeColors.incomeBackground 
-                  : themeColors.expenseBackground
-              }}
-            >
-              <Card.Content>
-                <View style={{ alignItems: 'center' }}>
-                  <Text variant="bodyMedium" style={{ color: themeColors.textSecondary }}>
-                    {diffData.type === 'income' ? 'Se registrará un INGRESO de:' : 'Se registrará un GASTO de:'}
-                  </Text>
-                  <Text variant="headlineSmall" style={{ 
-                    color: diffData.type === 'income' ? themeColors.success : themeColors.error,
-                    fontWeight: 'bold',
-                    marginTop: 4
-                  }}>
-                    {diffData.type === 'income' ? '+' : '-'}S/ {diffData.absoluteDifference.toFixed(2)}
-                  </Text>
-                  <Text variant="bodySmall" style={{ 
-                    color: themeColors.textSecondary,
-                    textAlign: 'center',
-                    marginTop: 8
-                  }}>
-                    {diffData.type === 'income' 
-                      ? '💰 Tu balance aumentará a S/ ' + parseFloat(targetBalanceValue || '0').toFixed(2)
-                      : '💸 Tu balance disminuirá a S/ ' + parseFloat(targetBalanceValue || '0').toFixed(2)
-                    }
-                  </Text>
-                </View>
-              </Card.Content>
-            </Card>
+            <View style={{
+              backgroundColor: diffData.type === 'income' 
+                ? theme.colors.primaryContainer 
+                : theme.colors.errorContainer,
+              padding: 16,
+              borderRadius: 12,
+              marginBottom: 20,
+            }}>
+              <View style={{ alignItems: 'center' }}>
+                <Text 
+                  variant="bodyMedium" 
+                  style={{ 
+                    color: diffData.type === 'income' 
+                      ? theme.colors.onPrimaryContainer 
+                      : theme.colors.onErrorContainer,
+                    marginBottom: 8,
+                    fontWeight: '500'
+                  }}
+                >
+                  {diffData.type === 'income' ? 'Se registrará un INGRESO de:' : 'Se registrará un GASTO de:'}
+                </Text>
+                <Text variant="headlineSmall" style={{ 
+                  color: diffData.type === 'income' 
+                    ? theme.colors.onPrimaryContainer 
+                    : theme.colors.onErrorContainer,
+                  fontWeight: 'bold',
+                  marginBottom: 8,
+                }}>
+                  {diffData.type === 'income' ? '+' : '-'}S/ {diffData.absoluteDifference.toFixed(2)}
+                </Text>
+                
+                <Divider style={{ 
+                  width: '100%', 
+                  marginVertical: 12,
+                  backgroundColor: diffData.type === 'income' 
+                    ? theme.colors.onPrimaryContainer 
+                    : theme.colors.onErrorContainer,
+                  opacity: 0.3,
+                }} />
+                
+                <Text variant="bodySmall" style={{ 
+                  color: diffData.type === 'income' 
+                    ? theme.colors.onPrimaryContainer 
+                    : theme.colors.onErrorContainer,
+                  textAlign: 'center',
+                  opacity: 0.8,
+                }}>
+                  {diffData.type === 'income' 
+                    ? '💰 Tu balance aumentará a S/ ' + parseFloat(targetBalanceValue || '0').toFixed(2)
+                    : '💸 Tu balance disminuirá a S/ ' + parseFloat(targetBalanceValue || '0').toFixed(2)
+                  }
+                </Text>
+              </View>
+            </View>
           )}
 
           {!diffData.hasChange && targetBalanceValue && (
-            <Card 
-              mode="outlined" 
-              style={{ 
-                marginBottom: 20,
-                backgroundColor: themeColors.warningBackground
-              }}
-            >
-              <Card.Content>
-                <View style={{ alignItems: 'center' }}>
-                  <Text variant="bodyMedium" style={{ 
-                    color: themeColors.warning,
-                    textAlign: 'center'
-                  }}>
-                    ⚠️ No hay diferencia en el balance
-                  </Text>
-                  <Text variant="bodySmall" style={{ 
-                    color: themeColors.textSecondary,
-                    textAlign: 'center',
-                    marginTop: 4
-                  }}>
-                    El balance objetivo es igual al actual
-                  </Text>
-                </View>
-              </Card.Content>
-            </Card>
+            <View style={{
+              backgroundColor: theme.colors.secondaryContainer,
+              padding: 16,
+              borderRadius: 12,
+              marginBottom: 20,
+            }}>
+              <View style={{ alignItems: 'center' }}>
+                <Text variant="bodyMedium" style={{ 
+                  color: theme.colors.onSecondaryContainer,
+                  textAlign: 'center',
+                  fontWeight: '500'
+                }}>
+                  ⚠️ No hay diferencia en el balance
+                </Text>
+                <Text variant="bodySmall" style={{ 
+                  color: theme.colors.onSecondaryContainer,
+                  textAlign: 'center',
+                  marginTop: 4,
+                  opacity: 0.8,
+                }}>
+                  El balance objetivo es igual al actual
+                </Text>
+              </View>
+            </View>
           )}
 
           {/* Descripción opcional */}
@@ -308,11 +341,14 @@ export const RegularizeBalanceModal: React.FC<RegularizeBalanceModalProps> = ({
           />
 
           {/* Botones */}
-          <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
+          <View style={{ 
+            flexDirection: 'row', 
+            gap: 12,
+          }}>
             <Button 
               mode="outlined" 
               onPress={handleDismiss}
-              style={{ flex: 1, marginRight: 8 }}
+              style={{ flex: 1 }}
               disabled={loading}
             >
               Cancelar
@@ -322,11 +358,8 @@ export const RegularizeBalanceModal: React.FC<RegularizeBalanceModalProps> = ({
               onPress={handleSubmit(onSubmit)}
               loading={loading}
               disabled={loading || !diffData.hasChange}
-              style={{ 
-                flex: 1, 
-                marginLeft: 8, 
-                backgroundColor: diffData.type === 'income' ? themeColors.success : themeColors.error 
-              }}
+              style={{ flex: 1 }}
+              buttonColor={diffData.type === 'income' ? theme.colors.primary : theme.colors.error}
             >
               {loading ? 'Regularizando...' : 'Regularizar'}
             </Button>

@@ -11,6 +11,7 @@ import {
   Snackbar,
   HelperText,
   useTheme,
+  IconButton,
 } from 'react-native-paper';
 import { useForm, Controller } from 'react-hook-form';
 import { useTransactions } from '@/application/hooks/useTransactions';
@@ -33,31 +34,12 @@ export const AddMoneyModal: React.FC<AddMoneyModalProps> = ({ visible, onDismiss
   const [snackbarVisible, setSnackbarVisible] = useState(false);
   const [snackbarMessage, setSnackbarMessage] = useState('');
 
-  // Definir colores basados en el tema
-  const themeColors = {
-    surface: theme.colors.surface,
-    text: theme.colors.onSurface,
-    textSecondary: theme.colors.onSurfaceVariant,
-    success: theme.dark ? '#4CAF50' : '#27AE60',
-    error: theme.dark ? '#F44336' : '#E74C3C',
-    incomeBackground: theme.dark ? 'rgba(76, 175, 80, 0.15)' : '#E8F5E8',
-    expenseBackground: theme.dark ? 'rgba(244, 67, 54, 0.15)' : '#FCE8E8',
-    incomeText: theme.dark ? '#81C784' : '#27AE60',
-    expenseText: theme.dark ? '#E57373' : '#E74C3C',
-    segmentedButtonSelected: theme.dark ? 'rgba(76, 175, 80, 0.2)' : '#E8F5E8',
-    segmentedButtonSelectedExpense: theme.dark ? 'rgba(244, 67, 54, 0.2)' : '#FCE8E8',
-  };
-
-  // Debug: Verificar que el hook se está resolviendo correctamente
-  console.log('useTransactions hook result:', { addTransaction, loading });
-
   const {
     control,
     handleSubmit,
     formState: { errors },
     reset,
     watch,
-    setValue,
   } = useForm<MoneyFormData>({
     defaultValues: {
       amount: '',
@@ -156,29 +138,46 @@ export const AddMoneyModal: React.FC<AddMoneyModalProps> = ({ visible, onDismiss
         onDismiss={handleDismiss}
         dismissable={!loading}
         contentContainerStyle={{ 
-          backgroundColor: themeColors.surface, 
+          backgroundColor: theme.colors.surface, 
           margin: 20, 
           borderRadius: 16,
         }}
       >
         <Card.Content style={{ padding: 24 }}>
-          <Text variant="headlineSmall" style={{ 
-            textAlign: 'center', 
-            marginBottom: 16,
-            color: themeColors.text
+          {/* Header con botón de cerrar */}
+          <View style={{ 
+            flexDirection: 'row',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            marginBottom: 24,
           }}>
-            Registrar Movimiento
-          </Text>
+            <Text variant="headlineSmall" style={{ 
+              fontWeight: '600',
+              color: theme.colors.onSurface,
+              flex: 1,
+              textAlign: 'center',
+            }}>
+              Registrar Movimiento
+            </Text>
+            <IconButton
+              icon="close"
+              size={20}
+              onPress={handleDismiss}
+              disabled={loading}
+              style={{ position: 'absolute', right: -8, top: -8 }}
+            />
+          </View>
 
           {/* Selector de tipo */}
           <Controller
             control={control}
             name="type"
             render={({ field: { onChange, value } }) => (
-              <View style={{ marginBottom: 5 }}>
+              <View style={{ marginBottom: 20 }}>
                 <Text variant="bodyMedium" style={{ 
-                  marginBottom: 8, 
-                  color: themeColors.textSecondary 
+                  marginBottom: 12, 
+                  color: theme.colors.onSurfaceVariant,
+                  fontWeight: '500'
                 }}>
                   Tipo de transacción
                 </Text>
@@ -190,20 +189,15 @@ export const AddMoneyModal: React.FC<AddMoneyModalProps> = ({ visible, onDismiss
                       value: 'expense',
                       label: 'Gasto',
                       icon: 'minus',
-                      style: { 
-                        backgroundColor: value === 'expense' ? themeColors.segmentedButtonSelectedExpense : undefined 
-                      }
+                      disabled: loading,
                     },
                     {
                       value: 'income',
                       label: 'Ingreso',
                       icon: 'plus',
-                      style: { 
-                        backgroundColor: value === 'income' ? themeColors.segmentedButtonSelected : undefined 
-                      }
+                      disabled: loading,
                     },
                   ]}
-                  // disabled={loading}
                 />
               </View>
             )}
@@ -217,7 +211,7 @@ export const AddMoneyModal: React.FC<AddMoneyModalProps> = ({ visible, onDismiss
               validate: validateAmount
             }}
             render={({ field: { onChange, onBlur, value } }) => (
-              <View style={{ marginBottom: 5 }}>
+              <View style={{ marginBottom: 20 }}>
                 <TextInput
                   label={`Monto del ${transactionType === 'income' ? 'ingreso' : 'gasto'} (S/)`}
                   value={value}
@@ -257,7 +251,7 @@ export const AddMoneyModal: React.FC<AddMoneyModalProps> = ({ visible, onDismiss
               }
             }}
             render={({ field: { onChange, onBlur, value } }) => (
-              <View style={{ marginBottom: 5 }}>
+              <View style={{ marginBottom: 20 }}>
                 <TextInput
                   label="Descripción (opcional)"
                   value={value}
@@ -282,14 +276,19 @@ export const AddMoneyModal: React.FC<AddMoneyModalProps> = ({ visible, onDismiss
 
           {/* Información adicional */}
           <View style={{ 
-            backgroundColor: transactionType === 'income' ? themeColors.incomeBackground : themeColors.expenseBackground, 
-            padding: 12, 
-            borderRadius: 8, 
-            marginBottom: 15 
+            backgroundColor: transactionType === 'income' 
+              ? theme.colors.primaryContainer 
+              : theme.colors.errorContainer,
+            padding: 16, 
+            borderRadius: 12, 
+            marginBottom: 24,
           }}>
-            <Text variant="bodySmall" style={{ 
-              color: transactionType === 'income' ? themeColors.incomeText : themeColors.expenseText,
-              textAlign: 'center' 
+            <Text variant="bodyMedium" style={{ 
+              color: transactionType === 'income' 
+                ? theme.colors.onPrimaryContainer 
+                : theme.colors.onErrorContainer,
+              textAlign: 'center',
+              fontWeight: '500'
             }}>
               {transactionType === 'income' 
                 ? '💰 Este ingreso se sumará a tu balance total' 
@@ -299,11 +298,14 @@ export const AddMoneyModal: React.FC<AddMoneyModalProps> = ({ visible, onDismiss
           </View>
 
           {/* Botones */}
-          <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
+          <View style={{ 
+            flexDirection: 'row', 
+            gap: 12,
+          }}>
             <Button 
               mode="outlined" 
               onPress={handleDismiss}
-              style={{ flex: 1, marginRight: 8 }}
+              style={{ flex: 1 }}
               disabled={loading}
             >
               Cancelar
@@ -313,11 +315,8 @@ export const AddMoneyModal: React.FC<AddMoneyModalProps> = ({ visible, onDismiss
               onPress={handleSubmit(onSubmit)}
               loading={loading}
               disabled={loading}
-              style={{ 
-                flex: 1, 
-                marginLeft: 8, 
-                backgroundColor: transactionType === 'income' ? themeColors.success : themeColors.error 
-              }}
+              style={{ flex: 1 }}
+              buttonColor={transactionType === 'income' ? theme.colors.primary : theme.colors.error}
             >
               {loading ? 'Guardando...' : 'Registrar'}
             </Button>
