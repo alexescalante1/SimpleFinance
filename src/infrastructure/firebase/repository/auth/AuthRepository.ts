@@ -7,7 +7,7 @@ import {
   signOut,
 } from 'firebase/auth';
 import { doc, setDoc, getDoc } from 'firebase/firestore';
-import { auth, db } from '../firebaseConfig';
+import { auth, db } from '@/infrastructure/firebase/firebaseConfig';
 
 import { IAuthRepository } from '@/domain/repository/IAuthRepository';
 import { User } from '@/domain/models/User';
