@@ -8,7 +8,7 @@ import {
   useTheme,
 } from "react-native-paper";
 import { Transaction } from "@/domain/models/Transaction";
-import { AnimatedDialog } from "./AnimatedDialog"; // Ajusta la ruta según tu estructura
+import { AnimatedDialog } from "../../components/common/dialog/AnimatedDialog"; // Ajusta la ruta según tu estructura
 
 interface DeleteConfirmationModalProps {
   visible: boolean;

@@ -18,7 +18,7 @@ import {
   validateTransactionDetail,
   calculateDetailDiscrepancy,
 } from "@/domain/valueObjects/TransactionVo";
-import { AnimatedDialog } from "./AnimatedDialog"; // Ajusta la ruta según tu estructura
+import { SmoothPopupFullScreen } from '@/presentation/components/common/screen/SmoothPopupFullScreen';
 
 interface TransactionDetailModalProps {
   visible: boolean;
@@ -295,280 +295,268 @@ export const TransactionDetailModal: React.FC<TransactionDetailModalProps> = ({
 
   return (
     <>
-      <AnimatedDialog
+      <SmoothPopupFullScreen
         visible={visible}
         onDismiss={handleDismiss}
-        dismissable={!loading}
-        showCloseButton={true}
-        scrimOpacity={0.85}
+        backgroundColor={theme.colors.surface}
+        title="DETALLE DE TRANSACCIÓN"
       >
-        <ScrollView 
-          showsVerticalScrollIndicator={false}
-          style={{ maxHeight: 600 }} // Altura máxima para el scroll
-        >
-          {/* Header */}
-          <View style={{ marginTop: 16, marginBottom: 24 }}>
-            <Text
-              variant="headlineSmall"
-              style={{
-                textAlign: "center",
-                fontWeight: "600",
-                color: theme.colors.onSurface,
-              }}
-            >
-              Detalle de Transacción
-            </Text>
-          </View>
-
-          {/* Información de la transacción */}
-          <View style={{
-            backgroundColor: theme.colors.surface,
-            padding: 20,
-            borderRadius: 12,
-            marginBottom: 20,
-          }}>
-            <View style={{ alignItems: "center" }}>
-              <Text
-                variant="headlineMedium"
-                style={{
-                  color: transaction.type === "income" ? "#4CAF50" : "#F44336",
-                  fontWeight: "bold",
-                  marginBottom: 8,
-                }}
-              >
-                {transaction.type === "income" ? "+" : "-"}S/{" "}
-                {transaction.amount?.toFixed(2)}
-              </Text>
-              
-              <Text
-                variant="bodyLarge"
-                style={{
-                  textAlign: "center",
-                  color: theme.colors.onSurface,
-                  marginBottom: 4,
-                }}
-              >
-                {transaction.description || "Sin descripción"}
-              </Text>
-
-              <Text
-                variant="bodySmall"
-                style={{
-                  textAlign: "center",
-                  color: theme.colors.onSurfaceVariant,
-                  marginBottom: 8,
-                }}
-              >
-                {formatDate(transaction.createdAt)}
-              </Text>
-
-              {transaction.isRegularization && (
-                <Chip
-                  mode="outlined"
-                  style={{ marginTop: 8 }}
-                  textStyle={{ fontSize: 10 }}
-                >
-                  🔄 Regularización
-                </Chip>
-              )}
-            </View>
-          </View>
-
-          {/* Resumen de cálculos */}
-          {calculations && (
-            <View style={{
-              backgroundColor: theme.colors.surface,
-              padding: 16,
-              borderRadius: 12,
+          {/* Contenido scrolleable */}
+          <ScrollView 
+            style={{ flex: 1 }}
+            showsVerticalScrollIndicator={false}
+            contentContainerStyle={{ 
+              padding: 5,
+              paddingBottom: 40 // Espacio extra al final
+            }}
+          >
+            {/* Información de la transacción */}
+            <Card style={{
               marginBottom: 20,
+              backgroundColor: theme.colors.surfaceVariant,
             }}>
-              <Text
-                variant="titleMedium"
-                style={{
-                  textAlign: "center",
-                  marginBottom: 16,
-                  color: theme.colors.onSurface,
-                }}
-              >
-                Resumen
-              </Text>
-
-              <View
-                style={{
-                  flexDirection: "row",
-                  justifyContent: "space-between",
-                  marginBottom: 8,
-                }}
-              >
-                <Text variant="bodyMedium" style={{ color: theme.colors.onSurface }}>
-                  Total detalles:
-                </Text>
-                <Text variant="bodyMedium" style={{ fontWeight: "500", color: theme.colors.onSurface }}>
-                  S/ {calculations.totalDetailAmount.toFixed(2)}
-                </Text>
-              </View>
-
-              <View
-                style={{
-                  flexDirection: "row",
-                  justifyContent: "space-between",
-                  marginBottom: 8,
-                }}
-              >
-                <Text variant="bodyMedium" style={{ color: theme.colors.onSurface }}>
-                  Monto transacción:
-                </Text>
-                <Text variant="bodyMedium" style={{ fontWeight: "500", color: theme.colors.onSurface }}>
-                  S/ {transaction.amount.toFixed(2)}
-                </Text>
-              </View>
-
-              <Divider style={{ marginVertical: 12 }} />
-
-              <View
-                style={{
-                  flexDirection: "row",
-                  justifyContent: "space-between",
-                  marginBottom: calculations.hasDiscrepancy ? 12 : 0,
-                }}
-              >
-                <Text variant="bodyMedium" style={{ color: theme.colors.onSurface }}>
-                  Diferencia:
-                </Text>
-                <Text
-                  variant="bodyMedium"
-                  style={{
-                    color: calculations.hasDiscrepancy ? "#FF9800" : "#4CAF50",
-                    fontWeight: "bold",
-                  }}
-                >
-                  {calculations.hasDiscrepancy
-                    ? `S/ ${Math.abs(calculations.discrepancy).toFixed(2)} ${
-                        calculations.discrepancyType === "positive"
-                          ? "(faltante)"
-                          : "(sobrante)"
-                      }`
-                    : "Sin diferencia ✓"}
-                </Text>
-              </View>
-
-              {calculations.hasDiscrepancy && (
-                <View
-                  style={{
-                    backgroundColor: theme.colors.secondaryContainer,
-                    padding: 12,
-                    borderRadius: 8,
-                  }}
-                >
+              <Card.Content style={{ padding: 20 }}>
+                <View style={{ alignItems: "center" }}>
                   <Text
-                    variant="bodySmall"
+                    variant="displaySmall"
                     style={{
-                      color: theme.colors.onSecondaryContainer,
-                      textAlign: "center",
-                      fontWeight: "500",
+                      color: transaction.type === "income" ? "#4CAF50" : "#F44336",
+                      fontWeight: "bold",
+                      marginBottom: 12,
                     }}
                   >
-                    ⚠️ Se agregará automáticamente un item "Desfase" al guardar
+                    {transaction.type === "income" ? "+" : "-"}S/{" "}
+                    {transaction.amount?.toFixed(2)}
                   </Text>
+                  
+                  <Text
+                    variant="headlineSmall"
+                    style={{
+                      textAlign: "center",
+                      color: theme.colors.onSurfaceVariant,
+                      marginBottom: 8,
+                    }}
+                  >
+                    {transaction.description || "Sin descripción"}
+                  </Text>
+
+                  <Text
+                    variant="bodyMedium"
+                    style={{
+                      textAlign: "center",
+                      color: theme.colors.onSurfaceVariant,
+                      marginBottom: 12,
+                      opacity: 0.7,
+                    }}
+                  >
+                    {formatDate(transaction.createdAt)}
+                  </Text>
+
+                  {transaction.isRegularization && (
+                    <Chip
+                      mode="outlined"
+                      style={{ marginTop: 8 }}
+                      textStyle={{ fontSize: 12 }}
+                    >
+                      🔄 Regularización
+                    </Chip>
+                  )}
                 </View>
-              )}
-            </View>
-          )}
+              </Card.Content>
+            </Card>
 
-          {/* Lista de detalles */}
-          <View style={{ marginBottom: 24 }}>
-            <View
-              style={{
-                flexDirection: "row",
-                justifyContent: "space-between",
-                alignItems: "center",
-                marginBottom: 16,
-              }}
-            >
-              <Text variant="titleMedium" style={{ color: theme.colors.onSurface }}>
-                Detalles ({fields.length})
-              </Text>
-              <Button
-                mode="contained-tonal"
-                icon="plus"
-                onPress={addNewDetail}
-                disabled={loading}
-                compact
-              >
-                Agregar
-              </Button>
-            </View>
-
-            {fields.length === 0 ? (
-              <View style={{
-                backgroundColor: theme.colors.surface,
-                padding: 20,
-                borderRadius: 12,
-                alignItems: "center",
+            {/* Resumen de cálculos */}
+            {calculations && (
+              <Card style={{
+                marginBottom: 20,
+                backgroundColor: theme.colors.surfaceVariant,
               }}>
-                <Text
-                  variant="bodyMedium"
-                  style={{
-                    textAlign: "center",
-                    color: theme.colors.onSurface,
-                  }}
-                >
-                  No hay detalles agregados
-                </Text>
-                <Text
-                  variant="bodySmall"
-                  style={{
-                    textAlign: "center",
-                    marginTop: 4,
-                    color: theme.colors.onSurfaceVariant,
-                    opacity: 0.7,
-                  }}
-                >
-                  Presiona "Agregar" para incluir el primer detalle
-                </Text>
-              </View>
-            ) : (
-              fields.map((field, index) => (
-                <DetailItem
-                  key={field.id}
-                  detail={watchedDetails[index]}
-                  index={index}
-                  onRemove={removeDetail}
-                  control={control}
-                  errors={errors}
-                  disabled={loading}
-                />
-              ))
-            )}
-          </View>
+                <Card.Content style={{ padding: 20 }}>
+                  <Text
+                    variant="titleLarge"
+                    style={{
+                      textAlign: "center",
+                      marginBottom: 20,
+                      color: theme.colors.onSurfaceVariant,
+                    }}
+                  >
+                    Resumen de Cálculos
+                  </Text>
 
-          {/* Botones */}
-          <View style={{ 
-            flexDirection: "row", 
-            gap: 12,
-          }}>
-            <Button
-              mode="outlined"
-              onPress={handleDismiss}
-              style={{ flex: 1 }}
-              disabled={loading}
-            >
-              Cancelar
-            </Button>
+                  <View
+                    style={{
+                      flexDirection: "row",
+                      justifyContent: "space-between",
+                      marginBottom: 12,
+                    }}
+                  >
+                    <Text variant="bodyLarge" style={{ color: theme.colors.onSurfaceVariant }}>
+                      Total detalles:
+                    </Text>
+                    <Text variant="bodyLarge" style={{ fontWeight: "600", color: theme.colors.onSurfaceVariant }}>
+                      S/ {calculations.totalDetailAmount.toFixed(2)}
+                    </Text>
+                  </View>
+
+                  <View
+                    style={{
+                      flexDirection: "row",
+                      justifyContent: "space-between",
+                      marginBottom: 12,
+                    }}
+                  >
+                    <Text variant="bodyLarge" style={{ color: theme.colors.onSurfaceVariant }}>
+                      Monto transacción:
+                    </Text>
+                    <Text variant="bodyLarge" style={{ fontWeight: "600", color: theme.colors.onSurfaceVariant }}>
+                      S/ {transaction.amount.toFixed(2)}
+                    </Text>
+                  </View>
+
+                  <Divider style={{ marginVertical: 16 }} />
+
+                  <View
+                    style={{
+                      flexDirection: "row",
+                      justifyContent: "space-between",
+                      marginBottom: calculations.hasDiscrepancy ? 16 : 0,
+                    }}
+                  >
+                    <Text variant="titleMedium" style={{ color: theme.colors.onSurfaceVariant }}>
+                      Diferencia:
+                    </Text>
+                    <Text
+                      variant="titleMedium"
+                      style={{
+                        color: calculations.hasDiscrepancy ? "#FF9800" : "#4CAF50",
+                        fontWeight: "bold",
+                      }}
+                    >
+                      {calculations.hasDiscrepancy
+                        ? `S/ ${Math.abs(calculations.discrepancy).toFixed(2)} ${
+                            calculations.discrepancyType === "positive"
+                              ? "(faltante)"
+                              : "(sobrante)"
+                          }`
+                        : "Sin diferencia ✓"}
+                    </Text>
+                  </View>
+
+                  {calculations.hasDiscrepancy && (
+                    <View
+                      style={{
+                        backgroundColor: theme.colors.secondaryContainer,
+                        padding: 16,
+                        borderRadius: 12,
+                      }}
+                    >
+                      <Text
+                        variant="bodyMedium"
+                        style={{
+                          color: theme.colors.onSecondaryContainer,
+                          textAlign: "center",
+                          fontWeight: "500",
+                        }}
+                      >
+                        ⚠️ Se agregará automáticamente un item "Desfase" al guardar
+                      </Text>
+                    </View>
+                  )}
+                </Card.Content>
+              </Card>
+            )}
+
+            {/* Lista de detalles */}
+            <Card style={{
+              marginBottom: 24,
+              backgroundColor: theme.colors.surfaceVariant,
+            }}>
+              <Card.Content style={{ padding: 20 }}>
+                <View
+                  style={{
+                    flexDirection: "row",
+                    justifyContent: "space-between",
+                    alignItems: "center",
+                    marginBottom: 20,
+                  }}
+                >
+                  <Text variant="titleLarge" style={{ color: theme.colors.onSurfaceVariant }}>
+                    Detalles ({fields.length})
+                  </Text>
+                  <Button
+                    mode="contained"
+                    icon="plus"
+                    onPress={addNewDetail}
+                    disabled={loading}
+                    compact
+                  >
+                    Agregar
+                  </Button>
+                </View>
+
+                {fields.length === 0 ? (
+                  <View style={{
+                    backgroundColor: theme.colors.surface,
+                    padding: 24,
+                    borderRadius: 12,
+                    alignItems: "center",
+                  }}>
+                    <Text
+                      variant="bodyLarge"
+                      style={{
+                        textAlign: "center",
+                        color: theme.colors.onSurface,
+                        marginBottom: 8,
+                      }}
+                    >
+                      No hay detalles agregados
+                    </Text>
+                    <Text
+                      variant="bodyMedium"
+                      style={{
+                        textAlign: "center",
+                        color: theme.colors.onSurfaceVariant,
+                        opacity: 0.7,
+                      }}
+                    >
+                      Presiona "Agregar" para incluir el primer detalle
+                    </Text>
+                  </View>
+                ) : (
+                  fields.map((field, index) => (
+                    <DetailItem
+                      key={field.id}
+                      detail={watchedDetails[index]}
+                      index={index}
+                      onRemove={removeDetail}
+                      control={control}
+                      errors={errors}
+                      disabled={loading}
+                    />
+                  ))
+                )}
+              </Card.Content>
+            </Card>
+          </ScrollView>
+
+          {/* Footer fijo con botón de guardar */}
+          <View>
             <Button
               mode="contained"
               onPress={handleSubmit(onSubmit)}
               loading={loading}
               disabled={loading}
-              style={{ flex: 1 }}
               buttonColor={theme.colors.primary}
               icon="content-save"
+              style={{ 
+                paddingVertical: 8,
+              }}
+              labelStyle={{ fontSize: 16 }}
             >
-              {loading ? "Guardando..." : "Guardar"}
+              {loading ? "Guardando..." : "Guardar Detalle"}
             </Button>
           </View>
-        </ScrollView>
-      </AnimatedDialog>
+      </SmoothPopupFullScreen>
 
       <Snackbar
         visible={snackbarVisible}

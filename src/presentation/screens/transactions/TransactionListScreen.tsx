@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from "react";
-import { ScrollView, View, RefreshControl } from "react-native";
+import { ScrollView, View, RefreshControl, TouchableOpacity } from "react-native";
 import {
   Text,
   Card,
@@ -8,8 +8,6 @@ import {
   Searchbar,
   SegmentedButtons,
   IconButton,
-  Menu,
-  Divider,
   Snackbar,
   useTheme,
 } from "react-native-paper";
@@ -40,9 +38,6 @@ const TransactionListScreen: React.FC = () => {
     useState<Transaction | null>(null);
   const [showDeleteModal, setShowDeleteModal] = useState<boolean>(false);
   const [showDetailModal, setShowDetailModal] = useState<boolean>(false);
-  const [menuVisible, setMenuVisible] = useState<{ [key: string]: boolean }>(
-    {}
-  );
   const [snackbarVisible, setSnackbarVisible] = useState<boolean>(false);
   const [snackbarMessage, setSnackbarMessage] = useState<string>("");
 
@@ -102,30 +97,16 @@ const TransactionListScreen: React.FC = () => {
     }
   };
 
-  const toggleMenu = (transactionId: string) => {
-    setMenuVisible((prev) => ({
-      ...prev,
-      [transactionId]: !prev[transactionId],
-    }));
-  };
-
-  const closeMenu = (transactionId: string) => {
-    setMenuVisible((prev) => ({
-      ...prev,
-      [transactionId]: false,
-    }));
-  };
-
-  const handleDeletePress = (transaction: Transaction) => {
+  const handleCardPress = (transaction: Transaction) => {
     setSelectedTransaction(transaction);
-    closeMenu(transaction.id);
-    setShowDeleteModal(true);
-  };
-
-  const handleDetailPress = (transaction: Transaction) => {
-    setSelectedTransaction(transaction);
-    closeMenu(transaction.id);
     setShowDetailModal(true);
+  };
+
+  const handleDeletePress = (transaction: Transaction, event: any) => {
+    // Prevenir que se ejecute el onPress del Card
+    event.stopPropagation();
+    setSelectedTransaction(transaction);
+    setShowDeleteModal(true);
   };
 
   const handleConfirmDelete = async () => {
@@ -280,135 +261,122 @@ const TransactionListScreen: React.FC = () => {
               </Card>
             ) : (
               filteredTransactions.map((transaction: Transaction) => (
-                <Card
+                <TouchableOpacity
                   key={transaction.id}
-                  style={{
-                    marginBottom: 12,
-                    backgroundColor: theme.colors.surface,
-                  }}
+                  onPress={() => handleCardPress(transaction)}
+                  activeOpacity={0.7}
                 >
-                  <Card.Content>
-                    <View
-                      style={{
-                        flexDirection: "row",
-                        justifyContent: "space-between",
-                        alignItems: "flex-start",
-                      }}
-                    >
-                      <View style={{ flex: 1 }}>
-                        <Text
-                          variant="titleMedium"
-                          style={{ marginBottom: 16 }}
-                        >
-                          {transaction.description || "Sin descripción"}
-                        </Text>
-
-                        <View
-                          style={{
-                            flexDirection: "row",
-                            alignItems: "center",
-                            marginBottom: 4,
-                          }}
-                        >
-                          <Chip
-                            mode="outlined"
-                            textStyle={{ fontSize: 12 }}
-                            style={{ marginRight: 8 }}
-                            icon={
-                              transaction.type === "income" ? "plus" : "minus"
-                            }
+                  <Card
+                    style={{
+                      marginBottom: 12,
+                      backgroundColor: theme.colors.surface,
+                    }}
+                  >
+                    <Card.Content>
+                      <View
+                        style={{
+                          flexDirection: "row",
+                          justifyContent: "space-between",
+                          alignItems: "flex-start",
+                        }}
+                      >
+                        <View style={{ flex: 1 }}>
+                          <Text
+                            variant="titleMedium"
+                            style={{ marginBottom: 16 }}
                           >
-                            {transaction.type === "income"
-                              ? "Ingreso"
-                              : "Gasto"}
-                          </Chip>
+                            {transaction.description || "Sin descripción"}
+                          </Text>
 
-                          {transaction.isRegularization && (
+                          <View
+                            style={{
+                              flexDirection: "row",
+                              alignItems: "center",
+                              marginBottom: 4,
+                            }}
+                          >
                             <Chip
                               mode="outlined"
-                              textStyle={{ fontSize: 10 }}
+                              textStyle={{ fontSize: 12 }}
                               style={{ marginRight: 8 }}
+                              icon={
+                                transaction.type === "income" ? "plus" : "minus"
+                              }
                             >
-                              🔄
+                              {transaction.type === "income"
+                                ? "Ingreso"
+                                : "Gasto"}
                             </Chip>
-                          )}
 
-                          <Text variant="bodySmall">
-                            {formatDate(transaction.createdAt)}
-                          </Text>
-                        </View>
-
-                        {transaction.detail &&
-                          transaction.detail.length > 0 && (
-                            <View
-                              style={{
-                                flexDirection: "row",
-                                alignItems: "center",
-                                marginTop: 4,
-                              }}
-                            >
+                            {transaction.isRegularization && (
                               <Chip
                                 mode="outlined"
-                                compact
                                 textStyle={{ fontSize: 10 }}
                                 style={{ marginRight: 8 }}
                               >
-                                📋 {transaction.detail.length} detalle
-                                {transaction.detail.length !== 1 ? "s" : ""}
+                                🔄
                               </Chip>
-                            </View>
-                          )}
-                      </View>
+                            )}
 
-                      <View style={{ alignItems: "flex-end", marginLeft: 8 }}>
-                        <Text
-                          variant="titleLarge"
-                          style={{
-                            color:
-                              transaction.type === "income"
-                                ? "#4CAF50"
-                                : "#F44336",
-                            fontWeight: "bold",
-                            marginBottom: 4,
-                          }}
-                        >
-                          {transaction.type === "income" ? "+" : "-"}S/{" "}
-                          {transaction.amount?.toFixed(2) || "0.00"}
-                        </Text>
+                            <Text variant="bodySmall">
+                              {formatDate(transaction.createdAt)}
+                            </Text>
+                          </View>
 
-                        <Menu
-                          visible={menuVisible[transaction.id] || false}
-                          onDismiss={() => closeMenu(transaction.id)}
-                          anchor={
-                            <IconButton
-                              icon="dots-vertical"
-                              size={20}
-                              onPress={() => toggleMenu(transaction.id)}
-                            />
-                          }
-                          contentStyle={{
-                            backgroundColor: theme.colors.surface,
-                            borderRadius: 8,
-                            borderWidth: 1,
-                            borderColor: theme.colors.outlineVariant,
-                          }}
-                        >
-                          <Menu.Item
-                            onPress={() => handleDetailPress(transaction)}
-                            title="Ver/Editar Detalle"
-                            leadingIcon="pencil"
+                          {transaction.detail &&
+                            transaction.detail.length > 0 && (
+                              <View
+                                style={{
+                                  flexDirection: "row",
+                                  alignItems: "center",
+                                  marginTop: 4,
+                                }}
+                              >
+                                <Chip
+                                  mode="outlined"
+                                  compact
+                                  textStyle={{ fontSize: 10 }}
+                                  style={{ marginRight: 8 }}
+                                >
+                                  📋 {transaction.detail.length} detalle
+                                  {transaction.detail.length !== 1 ? "s" : ""}
+                                </Chip>
+                              </View>
+                            )}
+                        </View>
+
+                        <View style={{ alignItems: "flex-end", marginLeft: 8 }}>
+                          <Text
+                            variant="titleLarge"
+                            style={{
+                              color:
+                                transaction.type === "income"
+                                  ? "#4CAF50"
+                                  : "#F44336",
+                              fontWeight: "bold",
+                              marginBottom: 8,
+                            }}
+                          >
+                            {transaction.type === "income" ? "+" : "-"}S/{" "}
+                            {transaction.amount?.toFixed(2) || "0.00"}
+                          </Text>
+
+                          {/* Botón de eliminar directo */}
+                          <IconButton
+                            icon="delete"
+                            size={20}
+                            iconColor={theme.colors.error}
+                            onPress={(event) => handleDeletePress(transaction, event)}
+                            style={{
+                              backgroundColor: theme.colors.errorContainer,
+                              borderRadius: 8,
+                            }}
                           />
-                          <Divider />
-                          <Menu.Item
-                            onPress={() => handleDeletePress(transaction)}
-                            title="Eliminar"
-                            leadingIcon="delete"
-                          />
-                        </Menu>
+                        </View>
                       </View>
-                    </View>
-                  </Card.Content>
-                </Card>
+                    </Card.Content>
+                  </Card>
+                </TouchableOpacity>
               ))
             )}
           </>

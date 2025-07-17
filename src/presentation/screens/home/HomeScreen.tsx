@@ -14,8 +14,8 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { LineChart } from "react-native-chart-kit";
 import { useAuth } from "../../../application/hooks/useAuth";
 import { useTransactions } from "../../../application/hooks/useTransactions";
-import { AddMoneyModal } from "../../components/specific/AddMoneyModal";
-import { RegularizeBalanceModal } from "../../components/specific/RegularizeBalanceModal";
+import { AddMoneyModal } from "./AddMoneyModal";
+import { RegularizeBalanceModal } from "./RegularizeBalanceModal";
 
 const screenWidth: number = Dimensions.get("window").width;
 
