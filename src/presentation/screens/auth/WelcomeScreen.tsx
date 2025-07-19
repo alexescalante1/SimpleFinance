@@ -77,7 +77,7 @@ export const WelcomeScreen = ({ navigation }: { navigation: any }) => {
                 color: theme.colors.onBackground,
               }}
             >
-              Finanzas Personales
+              Finanzify
             </Text>
             <Text
               variant="bodyLarge"
@@ -162,18 +162,6 @@ export const WelcomeScreen = ({ navigation }: { navigation: any }) => {
               backgroundColor: "transparent",
             }}
           >
-            <Text
-              variant="titleMedium"
-              style={{
-                textAlign: "center",
-                marginBottom: 20,
-                fontWeight: "600",
-                color: theme.colors.onSurface,
-              }}
-            >
-              Iniciar Sesión
-            </Text>
-
             {/* Contenedor de botones */}
             <View style={{ gap: 10 }}>
               {/* Botón Google */}

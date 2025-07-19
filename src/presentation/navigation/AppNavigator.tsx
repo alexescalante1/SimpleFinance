@@ -244,7 +244,7 @@ export const AppNavigator = () => {
   if (!isInitialized || loading) {
     return <AuthLoadingScreen message="Iniciando aplicación..." />;
   }
-
+  
   // Mostrar pantalla sin internet si no hay conexión
   if (!isConnected || !hasRealInternetAccess) {
     return <NoInternetScreen onRetry={checkConnection} />;
