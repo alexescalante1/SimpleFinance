@@ -12,6 +12,7 @@ import {
 } from 'react-native-paper';
 import { useForm, Controller } from 'react-hook-form';
 import { SmoothPopupFullScreen } from '@/presentation/components/common/screen/SmoothPopupFullScreen';
+import { SimpleCard } from '@/presentation/components/common/card/SimpleCard'; // Importar el componente
 
 interface RegularizeBalanceModalProps {
   visible: boolean;
@@ -141,10 +142,13 @@ export const RegularizeBalanceModal: React.FC<RegularizeBalanceModalProps> = ({
           }}
         >
           {/* Balance actual */}
-          <Card style={{
-            marginBottom: 20,
-            backgroundColor: theme.colors.surfaceVariant,
-          }}>
+          <SimpleCard
+            shadowIntensity="medium"
+            style={{
+              marginBottom: 20,
+              backgroundColor: theme.colors.surfaceVariant,
+            }}
+          >
             <Card.Content style={{ padding: 24 }}>
               <View style={{ alignItems: 'center' }}>
                 <Text 
@@ -164,13 +168,16 @@ export const RegularizeBalanceModal: React.FC<RegularizeBalanceModalProps> = ({
                 </Text>
               </View>
             </Card.Content>
-          </Card>
+          </SimpleCard>
 
           {/* Formulario principal */}
-          <Card style={{
-            marginBottom: 20,
-            backgroundColor: theme.colors.surfaceVariant,
-          }}>
+          <SimpleCard
+            shadowIntensity="medium"
+            style={{
+              marginBottom: 20,
+              backgroundColor: theme.colors.surfaceVariant,
+            }}
+          >
             <Card.Content style={{ padding: 24 }}>
               {/* Balance objetivo */}
               <Controller
@@ -238,16 +245,19 @@ export const RegularizeBalanceModal: React.FC<RegularizeBalanceModalProps> = ({
                 )}
               />
             </Card.Content>
-          </Card>
+          </SimpleCard>
 
           {/* Mostrar cálculo de diferencia */}
           {diffData.hasChange && (
-            <Card style={{
-              marginBottom: 20,
-              backgroundColor: diffData.type === 'income' 
-                ? theme.colors.primaryContainer 
-                : theme.colors.errorContainer,
-            }}>
+            <SimpleCard
+              shadowIntensity="strong"
+              style={{
+                marginBottom: 20,
+                backgroundColor: diffData.type === 'income' 
+                  ? theme.colors.primaryContainer 
+                  : theme.colors.errorContainer,
+              }}
+            >
               <Card.Content style={{ padding: 24 }}>
                 <View style={{ alignItems: 'center' }}>
                   <Text 
@@ -295,14 +305,17 @@ export const RegularizeBalanceModal: React.FC<RegularizeBalanceModalProps> = ({
                   </Text>
                 </View>
               </Card.Content>
-            </Card>
+            </SimpleCard>
           )}
 
           {!diffData.hasChange && targetBalanceValue && (
-            <Card style={{
-              marginBottom: 20,
-              backgroundColor: theme.colors.secondaryContainer,
-            }}>
+            <SimpleCard
+              shadowIntensity="light"
+              style={{
+                marginBottom: 20,
+                backgroundColor: theme.colors.secondaryContainer,
+              }}
+            >
               <Card.Content style={{ padding: 20 }}>
                 <View style={{ alignItems: 'center' }}>
                   <Text variant="bodyMedium" style={{ 
@@ -322,7 +335,7 @@ export const RegularizeBalanceModal: React.FC<RegularizeBalanceModalProps> = ({
                   </Text>
                 </View>
               </Card.Content>
-            </Card>
+            </SimpleCard>
           )}
         </ScrollView>
 

@@ -16,6 +16,12 @@ import { useAuth } from "../../../application/hooks/useAuth";
 import { useTransactions } from "../../../application/hooks/useTransactions";
 import { AddMoneyModal } from "./AddMoneyModal";
 import { RegularizeBalanceModal } from "./RegularizeBalanceModal";
+import { HeaderSection } from "./components/HeaderSection";
+import { BalanceCard } from "./components/BalanceCard";
+import { ActionButtons } from "./components/ActionButtons";
+import { PeriodSelector } from "./components/PeriodSelector";
+import { PeriodSummary } from "./components/PeriodSummary";
+import { BalanceChart } from "./components/BalanceChart";
 
 const screenWidth: number = Dimensions.get("window").width;
 
@@ -68,7 +74,7 @@ const HomeScreen: React.FC = () => {
   const [showRegularizeModal, setShowRegularizeModal] = useState<boolean>(false);
   const scrollViewRef = useRef<ScrollView>(null);
 
-  // Funciones auxiliares para fechas (mantener las existentes)
+  // Mantener toda la lógica original del gráfico (sin cambios)
   const getDateKey = (date: Date, period: ChartPeriod): string => {
     const year: number = date.getFullYear();
     const month: number = date.getMonth();
@@ -140,18 +146,15 @@ const HomeScreen: React.FC = () => {
     }
   };
 
-  // Calcular datos para el gráfico (mantener lógica existente pero simplificada)
   const chartData: ChartData = useMemo(() => {
     const labels: string[] = getLabelsForPeriod(chartPeriod);
     const periodTotals: PeriodTotals = {};
     const now: Date = new Date();
 
-    // Inicializar períodos con 0
     labels.forEach((label: string) => {
       periodTotals[label] = 0;
     });
 
-    // Procesar transacciones (lógica simplificada)
     if (transactions.length > 0) {
       transactions.forEach((transaction: Transaction) => {
         if (!transaction.createdAt || !transaction.createdAt.toDate) return;
@@ -217,7 +220,6 @@ const HomeScreen: React.FC = () => {
       (label: string) => periodTotals[label] || 0
     );
 
-    // Balance acumulativo
     const cumulativeData: number[] = [];
     let runningTotal: number = 0;
 
@@ -226,7 +228,6 @@ const HomeScreen: React.FC = () => {
       cumulativeData.push(runningTotal);
     });
 
-    // Agregar variación mínima si no hay datos
     const hasRealData = cumulativeData.some((value) => value !== 0);
     if (!hasRealData) {
       cumulativeData.forEach((_, index) => {
@@ -240,7 +241,6 @@ const HomeScreen: React.FC = () => {
     };
   }, [transactions, chartPeriod]);
 
-  // Calcular resumen del período actual
   const summary: Summary = useMemo(() => {
     const now: Date = new Date();
     let startDate: Date, endDate: Date;
@@ -312,24 +312,6 @@ const HomeScreen: React.FC = () => {
     return titles[chartPeriod] || "Período";
   };
 
-  const getChartWidth = (): number => {
-    const labels: string[] = getLabelsForPeriod(chartPeriod);
-    const minWidth: number = screenWidth - 40;
-
-    switch (chartPeriod) {
-      case "daily":
-        return Math.max(minWidth, labels.length * 40);
-      case "monthly":
-        return Math.max(minWidth, labels.length * 50);
-      case "quarterly":
-        return Math.max(minWidth, labels.length * 100);
-      case "yearly":
-        return Math.max(minWidth, labels.length * 120);
-      default:
-        return minWidth * 1.5;
-    }
-  };
-
   const getTransactionsForCurrentPeriod = (): Transaction[] => {
     const now: Date = new Date();
 
@@ -359,19 +341,6 @@ const HomeScreen: React.FC = () => {
     });
   };
 
-  useEffect(() => {
-    const chartWidth = getChartWidth();
-    const screenUsableWidth = screenWidth - 100;
-
-    if (scrollViewRef.current && chartWidth > screenUsableWidth) {
-      const timer = setTimeout(() => {
-        scrollViewRef.current?.scrollToEnd({ animated: true });
-      }, 500);
-
-      return () => clearTimeout(timer);
-    }
-  }, [chartPeriod, transactions.length, chartData]);
-
   if (loading && transactions.length === 0) {
     return (
       <SafeAreaView
@@ -398,363 +367,28 @@ const HomeScreen: React.FC = () => {
           />
         }
       >
-        {/* Header simplificado */}
-        <View style={{ marginBottom: 20 }}>
-          <Text
-            variant="headlineMedium"
-            style={{ marginBottom: 8, textAlign: "center" }}
-          >
-            ¡Hola, {user?.fullName}!
-          </Text>
-          <Text
-            variant="bodyLarge"
-            style={{ 
-              textAlign: "center", 
-              color: theme.colors.onSurfaceVariant,
-              marginBottom: 16 
-            }}
-          >
-            Control simple de finanzas
-          </Text>
-
-          {loading && (
-            <View
-              style={{
-                flexDirection: "row",
-                justifyContent: "center",
-                alignItems: "center",
-                marginBottom: 16,
-              }}
-            >
-              <ActivityIndicator size="small" />
-              <Text
-                variant="bodySmall"
-                style={{ marginLeft: 8, color: theme.colors.onSurfaceVariant }}
-              >
-                Actualizando...
-              </Text>
-            </View>
-          )}
-        </View>
-
-        {/* Balance actual prominente */}
-        <Card style={{ marginBottom: 16, backgroundColor: theme.colors.surface }}>
-          <Card.Content style={{ alignItems: "center", padding: 24 }}>
-            <Text
-              variant="bodyMedium"
-              style={{ color: theme.colors.onSurfaceVariant, marginBottom: 8 }}
-            >
-              Balance Actual
-            </Text>
-            <Text
-              variant="displaySmall"
-              style={{
-                color: currentBalance >= 0 ? "#4CAF50" : "#F44336",
-                fontWeight: "bold",
-              }}
-            >
-              S/ {currentBalance?.toFixed(2) || "0.00"}
-            </Text>
-          </Card.Content>
-        </Card>
-
-        {/* Botones de acción */}
-        <Card style={{ marginBottom: 16, backgroundColor: theme.colors.surface }}>
-          <Card.Content>
-            <View
-              style={{
-                flexDirection: "row",
-                gap: 12,
-              }}
-            >
-              <Button
-                mode="contained"
-                icon="plus"
-                onPress={() => setShowModal(true)}
-                style={{ flex: 1 }}
-                disabled={loading}
-              >
-                Nuevo Movimiento
-              </Button>
-              <Button
-                mode="outlined"
-                icon="scale-balance"
-                onPress={() => setShowRegularizeModal(true)}
-                style={{ flex: 1 }}
-                disabled={loading}
-              >
-                Regularizar
-              </Button>
-            </View>
-          </Card.Content>
-        </Card>
-
-        {/* Selector de período */}
-        <Card style={{ marginBottom: 16, backgroundColor: theme.colors.surface }}>
-          <Card.Content>
-            <Text
-              variant="titleMedium"
-              style={{ marginBottom: 16, textAlign: "center" }}
-            >
-              Período a analizar
-            </Text>
-            <SegmentedButtons
-              value={chartPeriod}
-              onValueChange={(value: string) =>
-                setChartPeriod(value as ChartPeriod)
-              }
-              buttons={[
-                { value: "daily", label: "Hoy" },
-                { value: "monthly", label: "Mes" },
-                { value: "quarterly", label: "Trim." },
-                { value: "yearly", label: "Año" },
-              ]}
-            />
-          </Card.Content>
-        </Card>
-
-        {/* Resumen del período */}
-        <Card style={{ marginBottom: 16, backgroundColor: theme.colors.surface }}>
-          <Card.Content>
-            <View
-              style={{
-                flexDirection: "row",
-                justifyContent: "space-between",
-                alignItems: "center",
-                marginBottom: 16,
-              }}
-            >
-              <Text variant="titleMedium">Resumen: {getPeriodTitle()}</Text>
-              <Chip mode="outlined" compact>
-                {getTransactionsForCurrentPeriod().length} mov.
-              </Chip>
-            </View>
-
-            <View
-              style={{
-                flexDirection: "row",
-                justifyContent: "space-around",
-                marginBottom: 16,
-              }}
-            >
-              <View style={{ alignItems: "center" }}>
-                <Text
-                  variant="bodySmall"
-                  style={{ color: "#4CAF50", marginBottom: 4 }}
-                >
-                  Ingresos
-                </Text>
-                <Text
-                  variant="headlineSmall"
-                  style={{ color: "#4CAF50", fontWeight: "bold" }}
-                >
-                  +S/ {summary.income.toFixed(2)}
-                </Text>
-              </View>
-
-              <View style={{ alignItems: "center" }}>
-                <Text
-                  variant="bodySmall"
-                  style={{ color: "#F44336", marginBottom: 4 }}
-                >
-                  Gastos
-                </Text>
-                <Text
-                  variant="headlineSmall"
-                  style={{ color: "#F44336", fontWeight: "bold" }}
-                >
-                  -S/ {summary.expenses.toFixed(2)}
-                </Text>
-              </View>
-            </View>
-
-            <Divider style={{ marginVertical: 16 }} />
-
-            <View style={{ alignItems: "center" }}>
-              <Text
-                variant="bodyMedium"
-                style={{ color: theme.colors.onSurfaceVariant, marginBottom: 8 }}
-              >
-                Balance del Período
-              </Text>
-              <Text
-                variant="headlineMedium"
-                style={{
-                  color: summary.balance >= 0 ? "#4CAF50" : "#F44336",
-                  fontWeight: "bold",
-                }}
-              >
-                S/ {summary.balance.toFixed(2)}
-              </Text>
-            </View>
-          </Card.Content>
-        </Card>
-
-        {/* Gráfico con eje Y fijo */}
-        <Card style={{ marginBottom: 16, backgroundColor: theme.colors.surface }}>
-          <Card.Content>
-            <Text
-              variant="titleMedium"
-              style={{ marginBottom: 16, textAlign: "center" }}
-            >
-              Evolución del Balance
-            </Text>
-
-            {chartData.labels.length > 0 && chartData.datasets[0].data.length > 0 ? (
-              <View style={{ position: "relative", height: 250, marginBottom: 0 }}>
-                {/* Eje Y fijo (lado izquierdo) */}
-                <View
-                  style={{
-                    position: "absolute",
-                    left: 0,
-                    top: 0,
-                    height: 220,
-                    width: 60,
-                    backgroundColor: theme.colors.surface,
-                    borderRightWidth: 1,
-                    borderRightColor: theme.colors.outline,
-                    zIndex: 10,
-                    paddingRight: 8,
-                  }}
-                >
-                  {/* Generar etiquetas del eje Y basadas en los datos */}
-                  {(() => {
-                    const data = chartData.datasets[0]?.data || [];
-                    const maxValue = Math.max(...data, 0);
-                    const minValue = Math.min(...data, 0);
-                    const range = maxValue - minValue || 1;
-                    const segments = 4;
-                    const yLabels = [];
-
-                    const topMargin = 25;
-                    const bottomMargin = 25;
-                    const availableHeight = 220 - topMargin - bottomMargin;
-                    const segmentHeight = availableHeight / segments;
-
-                    for (let i = segments; i >= 0; i--) {
-                      const value = minValue + (range * i) / segments;
-                      yLabels.push(
-                        <View
-                          key={i}
-                          style={{
-                            position: "absolute",
-                            top: topMargin + (segments - i) * segmentHeight - 6,
-                            right: 8,
-                            width: 52,
-                          }}
-                        >
-                          <Text
-                            variant="bodySmall"
-                            style={{
-                              color: theme.colors.onSurfaceVariant,
-                              fontSize: 10,
-                              textAlign: "right",
-                              lineHeight: 12,
-                            }}
-                          >
-                            S/{value.toFixed(0)}
-                          </Text>
-                        </View>
-                      );
-                    }
-                    return yLabels;
-                  })()}
-                </View>
-
-                {/* Gráfico principal con margen izquierdo */}
-                <View style={{ marginLeft: 0 }}>
-                  <ScrollView
-                    ref={scrollViewRef}
-                    horizontal={true}
-                    showsHorizontalScrollIndicator={true}
-                    style={{ marginVertical: 8 }}
-                    contentContainerStyle={{
-                      paddingRight: 40,
-                      paddingLeft: 0,
-                    }}
-                  >
-                    <LineChart
-                      data={chartData}
-                      width={getChartWidth() - 60}
-                      height={220}
-                      chartConfig={{
-                        backgroundColor: theme.colors.surface,
-                        backgroundGradientFrom: theme.colors.surface,
-                        backgroundGradientTo: theme.colors.surface,
-                        decimalPlaces: 0,
-                        color: (opacity: number = 1) => {
-                          const color = theme.colors.primary;
-                          const r = parseInt(color.slice(1, 3), 16);
-                          const g = parseInt(color.slice(3, 5), 16);
-                          const b = parseInt(color.slice(5, 7), 16);
-                          return `rgba(${r}, ${g}, ${b}, ${opacity})`;
-                        },
-                        labelColor: (opacity: number = 1) => {
-                          const color = theme.colors.onSurface;
-                          const r = parseInt(color.slice(1, 3), 16);
-                          const g = parseInt(color.slice(3, 5), 16);
-                          const b = parseInt(color.slice(5, 7), 16);
-                          return `rgba(${r}, ${g}, ${b}, ${opacity})`;
-                        },
-                        style: {
-                          borderRadius: 8,
-                        },
-                        propsForDots: {
-                          r: "3",
-                          strokeWidth: "2",
-                          stroke: theme.colors.primary,
-                          fill: theme.colors.primary,
-                        },
-                      }}
-                      bezier
-                      style={{
-                        borderRadius: 8,
-                      }}
-                      withHorizontalLabels={false}
-                      withVerticalLabels={true}
-                      withDots={true}
-                      withShadow={false}
-                      yAxisInterval={1}
-                      segments={4}
-                    />
-                  </ScrollView>
-                </View>
-              </View>
-            ) : (
-              <View style={{ alignItems: "center", padding: 40 }}>
-                <Text
-                  variant="bodyLarge"
-                  style={{ color: theme.colors.onSurfaceVariant, textAlign: "center" }}
-                >
-                  No hay datos para mostrar
-                </Text>
-                <Text
-                  variant="bodySmall"
-                  style={{
-                    color: theme.colors.onSurfaceVariant,
-                    textAlign: "center",
-                    marginTop: 8,
-                  }}
-                >
-                  Agrega transacciones para ver la evolución
-                </Text>
-              </View>
-            )}
-
-            {getChartWidth() > screenWidth - 40 && (
-              <Text
-                variant="bodySmall"
-                style={{
-                  textAlign: "center",
-                  color: theme.colors.onSurfaceVariant,
-                  marginTop: 8,
-                }}
-              >
-                💡 Desliza para ver más datos
-              </Text>
-            )}
-          </Card.Content>
-        </Card>
+        <HeaderSection userName={user?.fullName || "Usuario"} loading={loading} />
+        
+        <BalanceCard currentBalance={currentBalance} />
+        
+        <ActionButtons
+          onNewMovement={() => setShowModal(true)}
+          onRegularize={() => setShowRegularizeModal(true)}
+          loading={loading}
+        />
+        
+        <PeriodSelector
+          chartPeriod={chartPeriod}
+          onPeriodChange={setChartPeriod}
+        />
+        
+        <PeriodSummary
+          summary={summary}
+          periodTitle={getPeriodTitle()}
+          transactionCount={getTransactionsForCurrentPeriod().length}
+        />
+        
+        <BalanceChart chartData={chartData} chartPeriod={chartPeriod} />
 
         <View style={{ height: 50 }} />
       </ScrollView>
